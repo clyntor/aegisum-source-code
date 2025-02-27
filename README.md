@@ -39,7 +39,7 @@ Aegisum is a secure, scalable, and community-driven blockchain built on Litecoin
 |--------------------------|------------------------------------------------------|
 | **Coinbase Maturity**   | 20 (+1 default confirmation) blocks                 |
 | **Target Spacing**      | 3 minutes                                           |
-| **Target Timespan**     | 9 minutes                                           |
+| **Target Timespan**     | 24 hours                                            |
 | **Transaction Confirmations** | 3 blocks                                     |
 | **Timestamp Message**   | "Aegisum protects from crypto rugs and supports real causes" |
 
