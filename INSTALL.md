@@ -10,11 +10,11 @@ Building Aegisum
 
 **Warning:** Windows may flag the software as a virus. This is a false positive. You can verify its safety using the VirusTotal link below:
 
-[View VirusTotal Scan](https://www.virustotal.com/gui/file/0fd44e69c136e943e7a1d65f0dd7e9a9e9d3a4abb43194f02e248b6ecf18356e)
+[View VirusTotal Scan](https://www.virustotal.com/gui/file/ad18de1eeb3db60d7de2fd44559ef41386577491013abb1a1737047c5d187cb2)
 
 ### Steps:
 1. **Download & Extract**
-   - Download the latest [Windows Release](https://github.com/Aegisum/aegisum-core/releases): **windows-aegisum-core.zip**
+   - Download the latest [Windows Release](https://github.com/Aegisum/aegisum-core/releases): **windows-aegisum-v2.zip**
    - Extract the ZIP file using WinRAR, 7-Zip, or the built-in Windows extractor.
 
 2. **Install Aegisum Core**
