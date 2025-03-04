@@ -77,7 +77,7 @@ public:
         consensus.SegwitHeight = 0; 
         consensus.MinBIP9WarningHeight = 0; // segwit activation height + miner confirmation window
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan =  24 * 60 * 60;
+        consensus.nPowTargetTimespan =  9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
@@ -109,7 +109,7 @@ public:
         pchMessageStart[1] = 0x08;
         pchMessageStart[2] = 0xfe;
         pchMessageStart[3] = 0x61;
-        nDefaultPort = 22276;
+        nDefaultPort = 37511;
         nPruneAfterHeight = 100000;
         m_assumed_blockchain_size = 5;
         m_assumed_chain_state_size = 5;
@@ -124,8 +124,7 @@ public:
         // This is fine at runtime as we'll fall back to using them as an addrfetch if they don't support the
         // service bits we want, but we should get them updated to support all service bits wanted by any
         // release ASAP to avoid it where possible.
-        vSeeds.emplace_back("node3.walletbuilders.com");
-        vSeeds.emplace_back("node.aegisum.com");
+        vSeeds.emplace_back("node1.aegisum.com");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,24);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
@@ -146,14 +145,16 @@ public:
         checkpointData = {
             {
                 {  0, uint256S("0xd01de46801bba7913c039b4feabb42878e0a3e24ceef2365ed2a8d780c5aa9cd")},
+                {  100, uint256S("2d21faa7a1b25ac9cebb86600c5cfe2df99d72a72587779d72d64125e5706751")},            
+        
             }
         };
 
         chainTxData = ChainTxData{
             // Data from rpc: getchaintxstats 4096 d01de46801bba7913c039b4feabb42878e0a3e24ceef2365ed2a8d780c5aa9cd
-            /* nTime    */ 1738496549,
-            /* nTxCount */ 0,
-            /* dTxRate  */ 0
+            /* nTime    */ 1741035830,
+            /* nTxCount */ 102,
+            /* dTxRate  */ 0.003868621610120314
         };
     }
 };
@@ -204,7 +205,7 @@ public:
         pchMessageStart[1] = 0xcd;
         pchMessageStart[2] = 0x83;
         pchMessageStart[3] = 0xdc;
-        nDefaultPort = 32276;
+        nDefaultPort = 28791;
         nPruneAfterHeight = 1000;
         m_assumed_blockchain_size = 4;
         m_assumed_chain_state_size = 1;
