@@ -35,12 +35,12 @@ sudo apt-get update && sudo apt-get upgrade -y
 
 ### 2. Download the Aegisum Core
 ```bash
-wget --content-disposition -O linux-aegisum-v1.0.tar.gz https://github.com/Aegisum/aegisum-core/releases/download/v1.0/linux-aegisum-v1.0.tar.gz
+wget --content-disposition -O linux-aegisum-v2.0.tar.gz https://github.com/Aegisum/aegisum-core/releases/download/v2.0/linux-aegisum-v2.0.tar.gz
 ```
 
 ### 3. Extract the Files
 ```bash
-tar -czvf linux-aegisum-v1.0.tar.gz
+tar -czvf linux-aegisum-v2.0.tar.gz
 ```
 
 ### 4. Install Aegisum Core
