@@ -27,8 +27,8 @@ Aegisum is a secure, scalable, and community-driven blockchain built on Litecoin
 | **Public Address Letter** | A                             |
 | **Testnet Address Letter** | 1                           |
 | **Coin Unit**            | gisum                          |
-| **RPC Port**             | 28790                          |
-| **P2P Port**             | 28791                          |
+| **RPC Port**             | 39940                          |
+| **P2P Port**             | 39941                          |
 | **Block Reward**         | 500 coins                      |
 | **Block Halving**        | Every 100,000 blocks           |
 | **Coin Supply**         | 1,000,000,000 coins            |
@@ -39,7 +39,7 @@ Aegisum is a secure, scalable, and community-driven blockchain built on Litecoin
 |--------------------------|------------------------------------------------------|
 | **Coinbase Maturity**   | 20 (+1 default confirmation) blocks                 |
 | **Target Spacing**      | 3 minutes                                           |
-| **Target Timespan**     | 24 hours                                            |
+| **Target Timespan**     | 3 blocks                                            |
 | **Transaction Confirmations** | 3 blocks                                     |
 | **Timestamp Message**   | "Aegisum protects from crypto rugs and supports real causes" |
 
@@ -61,8 +61,8 @@ Alternatively, refer to the Bitcoin Core documentation, which follows a similar 
 
 | **Function** | **Mainnet** |
 |-------------|------------|
-| **P2P**    | 28791      | 
-| **RPC**    | 28790      | 
+| **P2P**    | 39941      | 
+| **RPC**    | 39940      | 
 
 ## Ongoing Development 💻
 
