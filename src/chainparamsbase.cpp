@@ -44,13 +44,13 @@ const CBaseChainParams& BaseParams()
 std::unique_ptr<CBaseChainParams> CreateBaseChainParams(const std::string& chain)
 {
     if (chain == CBaseChainParams::MAIN) {
-        return MakeUnique<CBaseChainParams>("", 28790, 28791);
+        return MakeUnique<CBaseChainParams>("", 39940, 39941);
     } else if (chain == CBaseChainParams::TESTNET) {
-        return MakeUnique<CBaseChainParams>("testnet4", 50178, 50179);
+        return MakeUnique<CBaseChainParams>("testnet4", 49940, 49941);
     } else if (chain == CBaseChainParams::SIGNET) {
-        return MakeUnique<CBaseChainParams>("signet", 54414, 54415);
+        return MakeUnique<CBaseChainParams>("signet", 322275, 39335);
     } else if (chain == CBaseChainParams::REGTEST) {
-        return MakeUnique<CBaseChainParams>("regtest", 59478, 59479);
+        return MakeUnique<CBaseChainParams>("regtest", 19443, 19444);
     }
     throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
 }
