@@ -1266,6 +1266,12 @@ bool ReadRawBlockFromDisk(std::vector<uint8_t>& block, const CBlockIndex* pindex
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
+    // Due to chain restart, blocks 1, 2, and 3 have extra rewards to speed up re-mining and airdropping holders (aegs1qs6a205ehsn7s2qf37hhejppay20qnzear8ftwg)
+    if (nHeight == 1 || nHeight == 2)
+        return 1000000 * COIN;  // Blocks 1 and 2 get 1,000,000 coins each
+    if (nHeight == 3)
+        return 500000 * COIN;  // Block 3 gets 500,000 coins
+
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64)
