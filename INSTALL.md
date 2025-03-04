@@ -68,7 +68,7 @@ aegisum-cli getblockcount
   ```bash
   ldd aegisumd
   ```
-- Ensure your firewall allows connections on port **22276** for P2P and **22275** for RPC.
+- Ensure your firewall allows connections on port **39941** for P2P and **39940** for RPC.
 
 ## Need Help? 💬
 Join the **[Aegisum Community](https://discord.gg/4E5caDKkeP)** for support and discussions!
