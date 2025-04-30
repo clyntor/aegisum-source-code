@@ -79,7 +79,7 @@ public:
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan =  9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
-        consensus.nDifficultyChangeActivationHeight = 18500; // Activate new difficulty rules at block 18500
+        consensus.nDifficultyChangeActivationHeight = 20000; // Activate new difficulty rules at block 20000
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 2; // 75% of 3
@@ -179,6 +179,7 @@ public:
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan =  9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
+        consensus.nDifficultyChangeActivationHeight = 20000; // Activate new difficulty rules at block 20000
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
@@ -269,6 +270,7 @@ public:
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan =  9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
+        consensus.nDifficultyChangeActivationHeight = 20000; // Activate new difficulty rules at block 20000
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
