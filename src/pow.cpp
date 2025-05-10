@@ -61,10 +61,27 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 
     // Limit adjustment step
     int64_t nActualTimespan = pindexLast->GetBlockTime() - nFirstBlockTime;
-    if (nActualTimespan < params.nPowTargetTimespan/4)
-        nActualTimespan = params.nPowTargetTimespan/4;
-    if (nActualTimespan > params.nPowTargetTimespan*4)
-        nActualTimespan = params.nPowTargetTimespan*4;
+    
+    // Check if we're at or past the activation height
+    bool fNewRules = pindexLast->nHeight >= params.nDifficultyChangeActivationHeight;
+    
+    if (fNewRules) {
+        // New rules: limit upward difficulty change to 1.5x (instead of 4x)
+        if (nActualTimespan < (params.nPowTargetTimespan * 2) / 3)
+            nActualTimespan = (params.nPowTargetTimespan * 2) / 3;
+            
+        // New rules: allow downward difficulty change up to 6x (instead of 4x)
+        if (nActualTimespan > params.nPowTargetTimespan * 6)
+            nActualTimespan = params.nPowTargetTimespan * 6;
+    } else {
+        // Old rules: limit upward difficulty change to 4x
+        if (nActualTimespan < params.nPowTargetTimespan/4)
+            nActualTimespan = params.nPowTargetTimespan/4;
+            
+        // Old rules: limit downward difficulty change to 4x
+        if (nActualTimespan > params.nPowTargetTimespan*4)
+            nActualTimespan = params.nPowTargetTimespan*4;
+    }
 
     // Retarget
     arith_uint256 bnNew;
