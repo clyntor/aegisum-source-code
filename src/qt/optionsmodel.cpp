@@ -73,8 +73,8 @@ void OptionsModel::Init(bool resetSettings)
     nDisplayUnit = settings.value("nDisplayUnit").toInt();
 
     if (!settings.contains("strThirdPartyTxUrls"))
-        settings.setValue("strThirdPartyTxUrls", "https://explorer.aegisum.com/tx/%s|https://explorer1.aegisum.com/tx/%s");
-    strThirdPartyTxUrls = settings.value("strThirdPartyTxUrls", "https://explorer.aegisum.com/tx/%s|https://explorer1.aegisum.com/tx/%s").toString();
+        settings.setValue("strThirdPartyTxUrls", "https://explorer.aegisum.com/tx/%s");
+    strThirdPartyTxUrls = settings.value("strThirdPartyTxUrls", "").toString();
 
     if (!settings.contains("fCoinControlFeatures"))
         settings.setValue("fCoinControlFeatures", false);
