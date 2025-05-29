@@ -605,10 +605,10 @@ std::string LicenseInfo()
            "\n" +
            strprintf(_("Please contribute if you find %s useful. "
                        "Visit %s for further information about the software.").translated,
-               PACKAGE_NAME, "<" PACKAGE_URL ">") +
+               PACKAGE_NAME, "<https://aegisum.com>") +
            "\n" +
            strprintf(_("The source code is available from %s.").translated,
-               URL_SOURCE_CODE) +
+               "<https://github.com/Aegisum/aegisum-core>") +
            "\n" +
            "\n" +
            _("This is experimental software.").translated + "\n" +
