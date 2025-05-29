@@ -98,7 +98,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE; 
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT; 
 
-        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000200020");
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000016e6661357dce281");
         consensus.defaultAssumeValid = uint256S("6279d38d109d596a75b51c8cc90d01e26dc02244156db58106431be71bec768f"); 
 
         /**
