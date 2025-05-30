@@ -604,11 +604,17 @@ std::string LicenseInfo()
     return CopyrightHolders(strprintf(_("Copyright (C) %i").translated, COPYRIGHT_YEAR) + " ") + "\n" +
            "\n" +
            strprintf(_("Please contribute if you find %s useful. "
-                       "Visit %s for further information about the software.").translated,
-               PACKAGE_NAME, "<" PACKAGE_URL ">") +
+                       "Visit %s for further information.").translated,
+               PACKAGE_NAME, "<https://aegisum.com>") +
            "\n" +
-           strprintf(_("The source code is available from %s.").translated,
-               URL_SOURCE_CODE) +
+           strprintf(_("Join our Discord community: %s").translated,
+               "<https://discord.gg/aegs>") +
+           "\n" +
+           strprintf(_("Official mining pool: %s").translated,
+               "<https://pool.aegisum.com>") +
+           "\n" +
+           strprintf(_("The source code is available from: %s.").translated,
+               "<https://github.com/Aegisum/aegisum-core>") +
            "\n" +
            "\n" +
            _("This is experimental software.").translated + "\n" +
