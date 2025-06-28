@@ -29,9 +29,9 @@ Aegisum is a secure, scalable, and community-driven blockchain built on Litecoin
 | **Coin Unit**            | gisum                          |
 | **RPC Port**             | 39940                          |
 | **P2P Port**             | 39941                          |
-| **Block Reward**         | 500 coins                      |
+| **Initial Block Reward**         | 500 coins              |
 | **Block Halving**        | Every 100,000 blocks           |
-| **Coin Supply**         | 100,000,000 coins          |
+| **Max Supply**         | 100,000,000 coins          |
 
 ## Advanced Properties 🚀
 
