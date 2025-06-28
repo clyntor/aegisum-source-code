@@ -20,7 +20,7 @@ Aegisum is a secure, scalable, and community-driven blockchain built on Litecoin
 
 | **Property**              | **Details**                   |
 |---------------------------|--------------------------------|
-| **Source Branch**        | 0.21                           |
+| **Source Branch**        | 0.21.3                         |
 | **Algorithm**            | Scrypt Proof of Work          |
 | **Coin Name**            | Aegisum                        |
 | **Coin Abbreviation**    | AEGS                           |
