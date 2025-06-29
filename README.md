@@ -69,16 +69,16 @@ Alternatively, refer to the Bitcoin Core documentation, which follows a similar 
 Aegisum Core is an **open-source, community-driven** software. The development process is transparent, and anyone can contribute.
 
 ### Main Development Resources
-- **[GitHub Repository](https://github.com/aegisum/core)** – Follow the latest developments.
-- **GitHub Discussions** – Discuss new features and improvements.
-- **[Aegisum Community](https://github.com/Aegisum/core/main/README.md#community--socials-)** – Join the growing community.
+- **[GitHub Repository](https://github.com/Aegisum/aegisum-core)** – Follow the latest developments.
+- **[GitHub Discussions](https://github.com/Aegisum/aegisum-core/discussions)** – Discuss new features and improvements.
+- **[Aegisum Community](https://github.com/Aegisum/aegisum-core?tab=readme-ov-file#community--socials-)** – Join the growing community.
 
 ## Version Strategy 📌
 
 Aegisum Core follows **major.minor.patch** versioning.
 
 ### Branches:
-- **master**: Stable, contains the latest major release.
+- **main**: Stable, contains the latest major release.
 - **maintenance**: Stable, contains previous releases under maintenance.
 - **development**: Unstable, contains new code for upcoming releases.
 
