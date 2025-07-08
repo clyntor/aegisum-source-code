@@ -6,21 +6,30 @@ Aegisum Core [AEGS]
 
 Select language: EN | [CN](./README_zh_CN.md)
 
-Aegisum is a secure, scalable, and community-driven blockchain built on Litecoin's foundation, optimized for high throughput and low fees. It utilizes the **Scrypt Proof of Work (PoW) algorithm** to ensure enhanced security and decentralization.
+Aegisum is a fair launched advanced blockchain dedicated to building a decentralized ecosystem. Founded on a robust infrastructure, it extends the characteristics of the  **Scrypt Proof-of-Work** consensus to build an impenetrable and timeless network. Its contributors have adopted a mission to pioneer solutions for the DeFi ecosystem, with an emphasis on cryptocurrency focused education, promoting awareness of scams and rug pulls, and supporting real world causes.
 
 ## Our mission 🎯
 
-- **Crypto Safety & Awareness**: Our main mission to make people aware of what crypto rug pulls and scams are. Users will learn to identify red flags, report suspicious projects, and access resources to protect themselves from scams. We aim to create a safer crypto space by promoting transparency and education within the community.
-- **Charity & Real Causes**: Our secondary mission is to support real causes. Of these real causes we will be allocating portions of donations / funds to various charities in need.
+- **Crypto Safety & Awareness**: Our main mission to deliver a secure infrastructure for decentralized finance (DeFi) applications with an emphasis on crypto satefy education for all users. Users will learn to identify red flags, report suspicious projects, and access resources to protect themselves from scams. Aegisum combines security with innovative features like scam prevention, cost-effective transactions, and socially responsible practices to create a safer and thriving crypto habitat, and to be the epitome of transparency and education within the crypto community.
+  
+- **Charity & Real Causes**: Aegisum integrates social impact into its ecosystem by allocating a portion of transaction volume to initiatives like tree-planting, services such as blockchain auditing and investigative research aimed towards the exposure of rug pulls and scams. This ties blockchain activity to tangible environmental benefits, crypto safety education and scam prevention, setting a new standard for socially responsible cryptocurrencies.
   
 ## Features 🔥
 
-- **Secure**: Leveraging Scrypt PoW algorithm for enhanced security and decentralization.
-- **Scalable**: Built on Litecoin’s foundation, optimized for high throughput and low fees.
-- **Community-Driven**: Join a passionate community shaping the future of decentralized finance.
-- **Enhanced Scrypt Algorithm**: Improved ASIC resistance for better decentralization and fair mining opportunities.
-- **Optimized Block Propagation**: Faster network synchronization for improved performance and reduced latency.
-- **No Smart Contracts**: Ensuring maximum security by avoiding complex smart contract vulnerabilities.
+- **Secure:** Leveraging encryption protocols for multi-layered security, through transaction hashing, peer authentication, and block confirmations ensuring confidentiality and integrity of sensitive data.
+- **Scalable:** The Aegisum network is optimized for high throughput and low fees, allowing the efficicient increase in number of transactions and users without compromising performance.
+- **Transparent:** The public ledger is transparent, allowing all transactions to be visible to everyone.
+- **Limited Supply:** The max supply of AEGS is 100,000,000 coins.
+- **Decentralized:** Aegisum is spread across multiple nodes worldwide, ensuring there is no single point of failure. As a result, it cannot be shut down. You can run a node from your Aegisum Core Wallet.
+- **Open Sourced:** Aegisum's source code is open to the public, allowing developers from the whole world to participate in the improvement and development of the network.
+- **Scrypt Algorithm:** Memory intensive with adaptive parameters and cryptographic security, the Scrypt algorithm mitigates ASIC miners dominance, allowing fair mining opportunities.
+- **Optimized Block Propagation:** Faster network synchronization for improved performance and reduced latency.
+- **Permissionless:** Users can send, receive and transact without the need of signing up for an account, nor having to report their transaction history to any financial or governmental institutions.
+- **Pseudonymous:** Personal and otherwise sensitive information is not required when conducting transactions.
+- **No Smart Contracts:** Ensuring maximum security by avoiding complex smart contract vulnerabilities.
+- **Community-Driven:** Join a growing community of contributors and enthusiasts looking to shape the future of DeFi.
+- **Social Responsibility:** The Aegisum development team is committed to contribute to real-world causes, like tree-planting initiatives and free education.
+- **Education:** Aegisum contributors are dedicated to provide resources to help users learn about crypto and identify scams.
 
 ## Blockchain Specifications ⚙️
 
