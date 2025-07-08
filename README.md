@@ -1,4 +1,10 @@
-# Aegisum Core [AEGS]
+<h1 align="center">
+<img src="https://aegisum.com/aegs.png" alt="Aegisum" width="200"/>
+<br/><br/>
+Aegisum Core [AEGS]
+</h1>
+
+Select language: EN | [CN](./README_zh_CN.md)
 
 Aegisum is a secure, scalable, and community-driven blockchain built on Litecoin's foundation, optimized for high throughput and low fees. It utilizes the **Scrypt Proof of Work (PoW) algorithm** to ensure enhanced security and decentralization.
 
