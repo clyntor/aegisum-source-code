@@ -31,7 +31,7 @@ Aegisum je pokročivý blockchain so spravodlivým spustením (fair launch), ven
 - **Sociálna zodpovednosť (Social Responsibility):** Vývojový tím Aegisum (Aegisum development team) sa zaväzuje prispievať k skutočným svetovým cieľom, ako sú iniciatívy výsadby stromov a bezplatné vzdelávanie.
 - **Vzdelávanie (Education):** Prispievatelia Aegisum (Aegisum contributors) sa venujú poskytovaniu zdrojov na pomoc používateľom naučiť sa o kryptomenách (crypto) a identifikovať podvody.
 
-## Špecifikácie reťazca blokov (Blockchain Specifications) ⚙️
+## Špecifikácie blockchain-u (Blockchain Specifications) ⚙️
 
 | **Vlastnosť (Property)**              | **Detaily (Details)**                   |
 |---------------------------|--------------------------------|
