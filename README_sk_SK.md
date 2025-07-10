@@ -99,7 +99,7 @@ Aegisum Core sleduje verziovanie **major.minor.patch**.
 
 ## Prispievanie (Contributing) 🤝
 
-Ak narazíte na chybu (bug) alebo máte návrhy, prosím nahláste to cez **[systém problémov (issue system)](https://github.com/aegisum/aegisum-core/issues)**.
+Ak narazíte na chybu (bug) alebo máte návrhy, prosím nahláste to cez **[ticketovací systém ako problém (issue system)](https://github.com/aegisum/aegisum-core/issues)**.
 
 Chcete prispieť? Pozrite si **príručku pre prispievanie (contribution guide)** pre detaily o tom, ako pomôcť zlepšiť Aegisum Core.
 
