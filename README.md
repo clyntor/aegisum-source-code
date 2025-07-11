@@ -4,7 +4,7 @@
 Aegisum Core [AEGS]
 </h1>
 
-Select language: EN | [CN](./README_zh_CN.md)
+Select language: EN | [CN](./README_zh_CN.md) | [SK](./README_sk_SK.md)
 
 Aegisum is a fair launched advanced blockchain dedicated to building a decentralized ecosystem. Founded on a robust infrastructure, it extends the characteristics of the  **Scrypt Proof-of-Work** consensus to build an impenetrable and timeless network. Its contributors have adopted a mission to pioneer solutions for the DeFi ecosystem, with an emphasis on cryptocurrency focused education, promoting awareness of scams and rug pulls, and supporting real world causes.
 
