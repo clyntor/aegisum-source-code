@@ -4,7 +4,7 @@
 Aegisum Core [AEGS]
 </h1>
 
-Select language: [EN](./README.md) | CN
+Select language: [EN](./README.md) | CN | [SK](./README_sk_SK.md) 
 
 Aegisum 是一个公平启动的先进区块链，致力于构建去中心化生态系统。建立在强大的基础设施之上，它扩展了 **Scrypt 工作量证明** 共识的特性，以构建一个牢不可破且永恒的网络。其贡献者采用了一项使命，为 DeFi 生态系统开拓解决方案，重点关注以加密货币为中心的教育，提高对诈骗和跑路的认识，并支持现实世界的事业。
 
