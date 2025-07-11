@@ -4,7 +4,7 @@
 Aegisum Core [AEGS]
 </h1>
 
-Vybrať jazyk: SK | [EN](./README.md) | [CN](./README_zh_CN.md)
+Vybrať jazyk: [EN](./README.md) | [CN](./README_zh_CN.md) | SK 
 
 Aegisum je pokročivý blockchain so spravodlivým spustením (fair launch), venovaný budovaniu decentralizovaného ekosystému. Založený na robustnej infraštruktúre rozširuje charakteristiky konsenzu **dôkazu práce Scrypt (Scrypt Proof-of-Work)** na vybudovanie nepreniknuteľnej a nadčasovej siete. Jeho prispievatelia si osvojili misiu byť priekopníkmi riešení pre ekosystém decentralizovaných financií (DeFi), s dôrazom na vzdelávanie zamerané na kryptomeny, podporu povedomia o podvodoch, tunelovani (rug pulls), a podpory šírenia osvety o skutočných podvodných udalostiach v crypto-svete.
 
