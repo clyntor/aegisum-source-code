@@ -5,7 +5,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
-
 #include <chainparamsseeds.h>
 #include <consensus/merkle.h>
 #include <hash.h> // for signet block challenge hash
@@ -84,6 +83,7 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 2; // 75% of 3
         consensus.nMinerConfirmationWindow = 12; // nPowTargetTimespan / nPowTargetSpacing * 4
+
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
@@ -98,8 +98,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE; 
         consensus.vDeployments[Consensus::DEPLOYMENT_MWEB].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT; 
 
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000016e6661357dce281");
-        consensus.defaultAssumeValid = uint256S("6279d38d109d596a75b51c8cc90d01e26dc02244156db58106431be71bec768f"); 
+        // Updated minimum chain work for block 39300
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000028cef1aeb24c5835");
+        // Updated assume valid hash for block 39300
+        consensus.defaultAssumeValid = uint256S("0xab32b64b1f4a4ef9e32e8fb0cbcab1ef70c8126efa56c9261cf0a3511f628d3a"); 
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -137,7 +139,6 @@ public:
         bech32_hrp = "aegs";
         mweb_hrp = "aegsmweb";
 
-
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;
         m_is_test_chain = false;
@@ -147,14 +148,15 @@ public:
             {
                 {  0, uint256S("0xd01de46801bba7913c039b4feabb42878e0a3e24ceef2365ed2a8d780c5aa9cd")},
                 {  21500, uint256S("6279d38d109d596a75b51c8cc90d01e26dc02244156db58106431be71bec768f")},
+                {  39300, uint256S("0xab32b64b1f4a4ef9e32e8fb0cbcab1ef70c8126efa56c9261cf0a3511f628d3a")},
             }
         };
 
         chainTxData = ChainTxData{
-            // Data from rpc: getchaintxstats 4096 d01de46801bba7913c039b4feabb42878e0a3e24ceef2365ed2a8d780c5aa9cd
-            /* nTime    */ 1738496549,
-            /* nTxCount */ 0,
-            /* dTxRate  */ 0
+            // Data from rpc: getchaintxstats 4096 ab32b64b1f4a4ef9e32e8fb0cbcab1ef70c8126efa56c9261cf0a3511f628d3a
+            /* nTime    */ 1752382792,  // timestamp from block 39300
+            /* nTxCount */ 65501,       // actual total transaction count
+            /* dTxRate  */ 0.009195741863189527  // actual transaction rate
         };
     }
 };
@@ -185,6 +187,7 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
+
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
@@ -228,7 +231,6 @@ public:
 
         bech32_hrp = "taegs";
         mweb_hrp = "tmweb";
-
 
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
