@@ -83,7 +83,6 @@ jobs:
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
         echo "🏗️ Building dependencies..."
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         cd depends
         make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu)
         echo "✅ Dependencies built successfully"
@@ -95,7 +94,6 @@ jobs:
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
         echo "🔄 Running autogen..."
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         ./autogen.sh
         echo "✅ Autogen completed"
 
@@ -109,7 +107,6 @@ jobs:
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
         echo "⚙️ Configuring build..."
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         CONFIG_SITE=$PWD/depends/x86_64-apple-darwin/share/config.site ./configure \
           --prefix=/ \
           --with-qt-dir=$(brew --prefix qt@5) \
@@ -128,7 +125,6 @@ jobs:
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
         echo "🔨 Building wallet..."
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         make -j$(sysctl -n hw.ncpu)
         echo "✅ Wallet build completed"
 
