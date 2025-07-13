@@ -34,7 +34,7 @@ jobs:
         
         brew update
         
-        # Install all required dependencies including libfmt
+        # Install all required dependencies
         brew install \
           automake \
           libtool \
@@ -52,48 +52,8 @@ jobs:
           libevent \
           sqlite
         
-        # Try to install berkeley-db4, but don't fail if it's deprecated
-        brew install berkeley-db4 || echo "berkeley-db4 not available from Homebrew, will install from source"
-        
         echo "✅ Dependencies installed"
         set -e
-
-    - name: Install Berkeley DB 4.8 from source
-      run: |
-        echo "🔧 Installing Berkeley DB 4.8 from source with proper C++ support..."
-        cd /tmp
-        
-        # Download Berkeley DB 4.8.30
-        curl -O https://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
-        tar xzf db-4.8.30.tar.gz
-        cd db-4.8.30
-        
-        # Apply patches for modern systems
-        sed -i.bak 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' dbinc/atomic.h || true
-        
-        cd build_unix
-        
-        # Configure with C++ support and proper flags for macOS
-        ../dist/configure \
-          --prefix=/usr/local \
-          --enable-cxx \
-          --enable-static \
-          --disable-shared \
-          --disable-replication \
-          --with-pic \
-          CFLAGS="-fPIC -O2" \
-          CXXFLAGS="-fPIC -O2 -std=c++11"
-        
-        # Build and install
-        make -j$(sysctl -n hw.ncpu)
-        sudo make install
-        
-        # Verify installation
-        echo "✅ Berkeley DB installed:"
-        ls -la /usr/local/include/db*
-        ls -la /usr/local/lib/libdb*
-        
-        cd ${{ github.workspace }}
 
     - name: Setup Python Environment
       run: |
@@ -138,7 +98,38 @@ jobs:
         find . -name "configure" -exec chmod +x {} \;
         if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
 
-    - name: Build with wallet support
+    - name: Build using depends system (includes Berkeley DB)
+      env:
+        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
+        PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
+        PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
+        LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib"
+        CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include"
+      run: |
+        echo "🏗️ Building dependencies using depends system..."
+        cd depends
+        
+        # Build all dependencies including Berkeley DB for macOS
+        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu)
+        
+        cd ..
+        
+        echo "🔧 Configuring build with depends..."
+        ./autogen.sh
+        
+        CONFIG_SITE=$PWD/depends/x86_64-apple-darwin/share/config.site ./configure \
+          --prefix=/ \
+          --enable-reduce-exports \
+          --disable-bench \
+          --disable-gui-tests \
+          --disable-tests
+        
+        echo "🔨 Building Aegisum with full wallet support..."
+        make -j$(sysctl -n hw.ncpu)
+
+    - name: Fallback build with system libraries (no wallet)
+      if: failure()
+      continue-on-error: true
       env:
         PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig:/usr/local/lib/pkgconfig"
@@ -146,10 +137,57 @@ jobs:
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib -L/usr/local/lib"
         CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include -I/usr/local/include"
         CXXFLAGS: "-std=c++17"
-        BDB_LIBS: "-L/usr/local/lib -ldb_cxx-4.8"
-        BDB_CFLAGS: "-I/usr/local/include"
       run: |
-        echo "🔧 Configuring build with wallet support..."
+        echo "🔄 Depends build failed, trying system libraries without wallet..."
+        make clean || true
+        
+        ./autogen.sh
+        
+        ./configure \
+          --prefix=${{ github.workspace }}/dist \
+          --with-boost=/usr/local \
+          --with-qt-dir=/usr/local/opt/qt@5 \
+          --enable-reduce-exports \
+          --disable-bench \
+          --disable-gui-tests \
+          --disable-tests \
+          --disable-wallet \
+          --with-libs \
+          PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig:${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig" \
+          LDFLAGS="-L/usr/local/lib -L${{ github.workspace }}/local/protobuf-3.6.1/lib" \
+          CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include" \
+          LIBS="-lfmt"
+        
+        echo "🔨 Building without wallet as fallback..."
+        make -j$(sysctl -n hw.ncpu)
+
+    - name: Try Berkeley DB 18.1 as final fallback
+      if: failure()
+      continue-on-error: true
+      run: |
+        echo "🔄 Trying with newer Berkeley DB 18.1..."
+        
+        # Install Berkeley DB 18.1 which has better macOS support
+        cd /tmp
+        curl -O https://download.oracle.com/berkeley-db/db-18.1.40.tar.gz
+        tar xzf db-18.1.40.tar.gz
+        cd db-18.1.40/build_unix
+        
+        ../dist/configure \
+          --prefix=/usr/local \
+          --enable-cxx \
+          --enable-static \
+          --disable-shared \
+          --disable-replication \
+          --with-pic
+        
+        make -j$(sysctl -n hw.ncpu)
+        sudo make install
+        
+        cd ${{ github.workspace }}
+        
+        # Try building with the newer Berkeley DB
+        make clean || true
         ./autogen.sh
         
         ./configure \
@@ -165,36 +203,12 @@ jobs:
           PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig:${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig" \
           LDFLAGS="-L/usr/local/lib -L${{ github.workspace }}/local/protobuf-3.6.1/lib" \
           CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include" \
-          BDB_LIBS="-L/usr/local/lib -ldb_cxx-4.8" \
+          BDB_LIBS="-L/usr/local/lib -ldb_cxx-18.1" \
           BDB_CFLAGS="-I/usr/local/include" \
           LIBS="-lfmt"
         
-        echo "🔨 Building Aegisum with full wallet support..."
+        echo "🔨 Building with Berkeley DB 18.1..."
         make -j$(sysctl -n hw.ncpu)
-
-    - name: Try depends build as fallback
-      if: failure()
-      continue-on-error: true
-      env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
-        PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
-        PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
-      run: |
-        echo "🔄 Trying depends build as fallback..."
-        cd depends
-        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu) || echo "Depends build failed"
-        cd ..
-        
-        if [ -d "depends/x86_64-apple-darwin" ]; then
-          ./autogen.sh
-          CONFIG_SITE=$PWD/depends/x86_64-apple-darwin/share/config.site ./configure \
-            --prefix=/ \
-            --enable-reduce-exports \
-            --disable-bench \
-            --disable-gui-tests
-          
-          make -j$(sysctl -n hw.ncpu) || echo "Depends-based build failed"
-        fi
 
     - name: Package wallet tools
       run: |
@@ -265,6 +279,7 @@ jobs:
         fi
         
         echo ""
-        echo "💰 Wallet support: ENABLED"
-        echo "🔧 Berkeley DB: Installed from source"
-        echo "🖥️ Qt GUI: Enabled"
+        echo "📋 Build strategy attempted:"
+        echo "1. Depends system (includes proper Berkeley DB)"
+        echo "2. System libraries without wallet (fallback)"
+        echo "3. Berkeley DB 18.1 with wallet (final fallback)"
