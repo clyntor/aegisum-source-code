@@ -2,6 +2,7 @@ name: Build macOS Wallet
 
 on:
   workflow_dispatch:
+  push:
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -26,12 +27,12 @@ jobs:
         echo "Architecture: $(uname -m)"
         echo "Available CPUs: $(sysctl -n hw.ncpu)"
 
-    - name: Install Dependencies (avoiding deprecated packages)
+    - name: Install Dependencies
       run: |
         echo "📦 Installing dependencies..."
         brew update
         
-        # Install core dependencies (skip deprecated berkeley-db4)
+        # Install available dependencies
         brew install \
           automake \
           libtool \
@@ -43,18 +44,36 @@ jobs:
           qt@5 \
           zmq \
           qrencode \
-          protobuf@3.6
+          protobuf
         
         # Try to install berkeley-db4 but don't fail if it's not available
-        brew install berkeley-db4 || echo "⚠️ berkeley-db4 not available, will use alternative"
+        brew install berkeley-db4 || echo "⚠️ berkeley-db4 not available, continuing without it"
 
     - name: Setup Python Environment
       run: |
         echo "🐍 Setting up Python environment..."
-        # Use --break-system-packages to bypass externally-managed-environment
-        python3 -m pip install --break-system-packages --upgrade pip setuptools wheel || \
-        python3 -m pip install --user --upgrade pip setuptools wheel || \
-        echo "Python setup completed with warnings"
+        # Multiple fallback methods for Python setup
+        python3 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
+        python3 -m pip install --user --upgrade pip setuptools wheel 2>/dev/null || \
+        /usr/local/opt/python@3.11/bin/python3.11 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
+        echo "✅ Python setup completed (some warnings may be normal)"
+
+    - name: Install Protobuf 3.6.1 from source (if needed)
+      run: |
+        echo "🔧 Installing specific Protobuf 3.6.1 from source..."
+        mkdir -p local
+        cd local
+        
+        # Download and build Protobuf 3.6.1
+        curl -L https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-cpp-3.6.1.tar.gz | tar xz
+        cd protobuf-3.6.1
+        
+        ./configure --prefix=${{ github.workspace }}/local/protobuf-3.6.1 --disable-shared --enable-static
+        make -j$(sysctl -n hw.ncpu)
+        make install
+        
+        echo "✅ Protobuf 3.6.1 installed to: ${{ github.workspace }}/local/protobuf-3.6.1"
+        ls -la ${{ github.workspace }}/local/protobuf-3.6.1/bin/
 
     - name: Fix file permissions
       run: |
@@ -65,12 +84,44 @@ jobs:
         find . -name "configure" -exec chmod +x {} \;
         if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
 
-    - name: Build with system dependencies (no depends/)
+    - name: Try depends build first
+      env:
+        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:$PATH"
+        PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
+        PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
-        echo "🔧 Building with system dependencies..."
+        echo "🏗️ Attempting depends build..."
+        cd depends
+        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu) || {
+          echo "❌ Depends build failed, will try system build"
+          cd ..
+          echo "DEPENDS_FAILED=true" >> $GITHUB_ENV
+        }
+
+    - name: Configure and build (depends method)
+      if: env.DEPENDS_FAILED != 'true'
+      env:
+        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:$PATH"
+        PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
+        PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
+      run: |
+        echo "🔧 Configuring with depends..."
+        ./autogen.sh
+        CONFIG_SITE=$PWD/depends/x86_64-apple-darwin/share/config.site ./configure \
+          --prefix=/ \
+          --enable-reduce-exports \
+          --disable-bench \
+          --disable-gui-tests
+        
+        echo "🔨 Building with depends..."
+        make -j$(sysctl -n hw.ncpu)
+
+    - name: Configure and build (system method)
+      if: env.DEPENDS_FAILED == 'true'
+      run: |
+        echo "🔧 Configuring with system libraries..."
         ./autogen.sh
         
-        # Configure with system libraries
         ./configure \
           --prefix=${{ github.workspace }}/dist \
           --with-boost=$(brew --prefix boost) \
@@ -79,11 +130,10 @@ jobs:
           --disable-bench \
           --disable-gui-tests \
           --disable-tests \
-          --disable-wallet \
           PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:$(brew --prefix qt@5)/lib/pkgconfig" \
           LDFLAGS="-L$(brew --prefix)/lib" \
           CPPFLAGS="-I$(brew --prefix)/include" || {
-            echo "❌ Configure failed, trying without wallet..."
+            echo "❌ Full configure failed, trying minimal build..."
             ./configure \
               --prefix=${{ github.workspace }}/dist \
               --with-boost=$(brew --prefix boost) \
@@ -98,7 +148,7 @@ jobs:
               CPPFLAGS="-I$(brew --prefix)/include"
           }
         
-        echo "🔨 Building Aegisum..."
+        echo "🔨 Building with system libraries..."
         make -j$(sysctl -n hw.ncpu)
 
     - name: Package wallet tools
@@ -107,28 +157,35 @@ jobs:
         mkdir -p aegisum-wallet-tools-macos
         
         # Copy binaries that were built
-        if [ -f src/aegisumd ]; then
-          cp src/aegisumd aegisum-wallet-tools-macos/
-          echo "✅ aegisumd included"
-        fi
+        for binary in aegisumd aegisum-cli aegisum-tx; do
+          if [ -f "src/$binary" ]; then
+            cp "src/$binary" aegisum-wallet-tools-macos/
+            echo "✅ $binary included"
+          else
+            echo "⚠️ $binary not found"
+          fi
+        done
         
-        if [ -f src/aegisum-cli ]; then
-          cp src/aegisum-cli aegisum-wallet-tools-macos/
-          echo "✅ aegisum-cli included"
-        fi
-        
-        if [ -f src/aegisum-tx ]; then
-          cp src/aegisum-tx aegisum-wallet-tools-macos/
-          echo "✅ aegisum-tx included"
-        fi
-        
+        # Check for Qt wallet
         if [ -f src/qt/aegisum-qt ]; then
           cp src/qt/aegisum-qt aegisum-wallet-tools-macos/
           echo "✅ aegisum-qt included"
+        else
+          echo "⚠️ aegisum-qt not found"
         fi
         
-        # Create archive
-        tar -czf aegisum-wallet-tools-macos.tar.gz aegisum-wallet-tools-macos/
+        # Show what we actually built
+        echo "📁 Final package contents:"
+        ls -la aegisum-wallet-tools-macos/
+        
+        # Create archive only if we have files
+        if [ "$(ls -A aegisum-wallet-tools-macos/)" ]; then
+          tar -czf aegisum-wallet-tools-macos.tar.gz aegisum-wallet-tools-macos/
+          echo "✅ Archive created successfully"
+        else
+          echo "❌ No binaries were built"
+          exit 1
+        fi
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -141,7 +198,14 @@ jobs:
       run: |
         echo "🎉 MACOS BUILD COMPLETED!"
         echo "📁 Built files:"
-        ls -la aegisum-wallet-tools-macos/ || echo "No files built"
+        ls -la aegisum-wallet-tools-macos/
         echo ""
-        echo "📊 Build artifacts:"
-        ls -la *.tar.gz || echo "No archives created"
+        echo "📊 Archive info:"
+        ls -la *.tar.gz
+        echo ""
+        echo "🔍 Binary details:"
+        for binary in aegisum-wallet-tools-macos/*; do
+          if [ -f "$binary" ]; then
+            echo "$(basename "$binary"): $(file "$binary")"
+          fi
+        done
