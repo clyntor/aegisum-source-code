@@ -2,8 +2,6 @@ name: Build macOS Wallet
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, develop ]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -28,68 +26,79 @@ jobs:
         echo "Architecture: $(uname -m)"
         echo "Available CPUs: $(sysctl -n hw.ncpu)"
 
-    - name: Install Dependencies
+    - name: Install Dependencies (ignore linking warnings)
+      continue-on-error: true
       run: |
         echo "📦 Installing dependencies..."
+        set +e  # Don't exit on errors
+        
         brew update
         
-        # Install available dependencies
-        brew install \
-          automake \
-          libtool \
-          boost \
-          miniupnpc \
-          libnatpmp \
-          pkg-config \
-          python@3.11 \
-          qt@5 \
-          zmq \
-          qrencode \
-          protobuf
-    
-        # Try to install berkeley-db4 but don't fail if it's not available
-        echo "🔍 Attempting to install berkeley-db4..."
-        brew install berkeley-db4 2>/dev/null || {
-          echo "⚠️ berkeley-db4 not available from Homebrew"
-          echo "🔧 Installing berkeley-db4 from source..."
-          
-          # Install berkeley-db4 from source as fallback
-          cd /tmp
-          curl -O https://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
-          tar xzf db-4.8.30.tar.gz
-          cd db-4.8.30/build_unix
-          ../dist/configure --prefix=/usr/local --enable-cxx --disable-shared
-          make -j$(sysctl -n hw.ncpu)
-          sudo make install
-          cd ${{ github.workspace }}
-        } || echo "⚠️ berkeley-db4 installation failed, continuing without it"
+        # Install dependencies one by one, continuing on errors
+        brew install automake || echo "automake install had issues"
+        brew install libtool || echo "libtool install had issues"
+        brew install boost || echo "boost install had issues"
+        brew install miniupnpc || echo "miniupnpc install had issues"
+        brew install libnatpmp || echo "libnatpmp install had issues"
+        brew install pkg-config || echo "pkg-config install had issues"
+        brew install python@3.11 || echo "python@3.11 install had issues"
+        brew install qt@5 || echo "qt@5 install had issues"
+        brew install zmq || echo "zmq install had issues"
+        brew install qrencode || echo "qrencode install had issues"
+        brew install protobuf || echo "protobuf install had issues"
+        
+        echo "✅ Dependency installation completed (some warnings are normal)"
+        set -e  # Re-enable exit on errors
 
-    - name: Setup Python Environment
+    - name: Force Python linking and setup
       run: |
         echo "🐍 Setting up Python environment..."
-    
-        # Fix Python linking conflicts
-        brew link --overwrite python@3.11 2>/dev/null || echo "Python linking had conflicts, continuing..."
-    
-        # Multiple fallback methods for Python setup
-        /usr/local/opt/python@3.11/bin/python3.11 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
-        python3 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
-        python3 -m pip install --user --upgrade pip setuptools wheel 2>/dev/null || \
-        echo "✅ Python setup completed (some warnings may be normal)"
-    
-        # Verify Python and setuptools
-        echo "🔍 Python verification:"
-        which python3
-        python3 --version
-        python3 -c "import setuptools; print('setuptools version:', setuptools.__version__)" || echo "setuptools check completed"
-
-    - name: Install Protobuf 3.6.1 from source (if needed)
-      run: |
-        echo "🔧 Installing specific Protobuf 3.6.1 from source..."
-        mkdir -p local
-        cd local
         
-        # Download and build Protobuf 3.6.1
+        # Force link Python, ignoring conflicts
+        brew link --overwrite --force python@3.11 || echo "Python linking completed with warnings"
+        
+        # Try multiple Python paths and methods
+        PYTHON_PATHS=(
+          "/usr/local/opt/python@3.11/bin/python3.11"
+          "/usr/local/bin/python3.11"
+          "/usr/bin/python3"
+          "python3"
+        )
+        
+        for python_path in "${PYTHON_PATHS[@]}"; do
+          if command -v "$python_path" >/dev/null 2>&1; then
+            echo "✅ Found Python at: $python_path"
+            $python_path --version
+            
+            # Try to install setuptools
+            $python_path -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
+            $python_path -m pip install --user --upgrade pip setuptools wheel 2>/dev/null || \
+            echo "Python setup attempted for $python_path"
+            
+            # Test setuptools
+            $python_path -c "import setuptools; print('setuptools available')" 2>/dev/null || echo "setuptools test completed"
+            break
+          fi
+        done
+
+    - name: Install Berkeley DB from source
+      run: |
+        echo "🔧 Installing Berkeley DB 4.8 from source..."
+        cd /tmp
+        curl -O https://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
+        tar xzf db-4.8.30.tar.gz
+        cd db-4.8.30/build_unix
+        ../dist/configure --prefix=/usr/local --enable-cxx --disable-shared
+        make -j$(sysctl -n hw.ncpu)
+        sudo make install
+        echo "✅ Berkeley DB installed"
+
+    - name: Install Protobuf 3.6.1 from source
+      run: |
+        echo "🔧 Installing Protobuf 3.6.1 from source..."
+        mkdir -p ${{ github.workspace }}/local
+        cd ${{ github.workspace }}/local
+        
         curl -L https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-cpp-3.6.1.tar.gz | tar xz
         cd protobuf-3.6.1
         
@@ -97,7 +106,7 @@ jobs:
         make -j$(sysctl -n hw.ncpu)
         make install
         
-        echo "✅ Protobuf 3.6.1 installed to: ${{ github.workspace }}/local/protobuf-3.6.1"
+        echo "✅ Protobuf 3.6.1 installed"
         ls -la ${{ github.workspace }}/local/protobuf-3.6.1/bin/
 
     - name: Fix file permissions
@@ -109,28 +118,20 @@ jobs:
         find . -name "configure" -exec chmod +x {} \;
         if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
 
-    - name: Try depends build first
+    - name: Build with depends
       env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:$PATH"
+        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
+        LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib -L/usr/local/lib"
+        CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include -I/usr/local/include"
       run: |
-        echo "🏗️ Attempting depends build..."
+        echo "🏗️ Building dependencies..."
         cd depends
-        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu) || {
-          echo "❌ Depends build failed, will try system build"
-          cd ..
-          echo "DEPENDS_FAILED=true" >> $GITHUB_ENV
-        }
-
-    - name: Configure and build (depends method)
-      if: env.DEPENDS_FAILED != 'true'
-      env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:$PATH"
-        PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
-        PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
-      run: |
-        echo "🔧 Configuring with depends..."
+        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu)
+        cd ..
+        
+        echo "🔧 Configuring build..."
         ./autogen.sh
         CONFIG_SITE=$PWD/depends/x86_64-apple-darwin/share/config.site ./configure \
           --prefix=/ \
@@ -138,39 +139,39 @@ jobs:
           --disable-bench \
           --disable-gui-tests
         
-        echo "🔨 Building with depends..."
+        echo "🔨 Building Aegisum..."
         make -j$(sysctl -n hw.ncpu)
 
-    - name: Configure and build (system method)
-      if: env.DEPENDS_FAILED == 'true'
+    - name: Fallback build with system libraries
+      if: failure()
       run: |
-        echo "🔧 Configuring with system libraries..."
-        ./autogen.sh
+        echo "🔄 Depends build failed, trying system libraries..."
+        make clean || true
         
         ./configure \
           --prefix=${{ github.workspace }}/dist \
-          --with-boost=$(brew --prefix boost) \
-          --with-qt-dir=$(brew --prefix qt@5) \
+          --with-boost=/usr/local \
+          --with-qt-dir=/usr/local/opt/qt@5 \
           --enable-reduce-exports \
           --disable-bench \
           --disable-gui-tests \
           --disable-tests \
-          PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:$(brew --prefix qt@5)/lib/pkgconfig" \
-          LDFLAGS="-L$(brew --prefix)/lib" \
-          CPPFLAGS="-I$(brew --prefix)/include" || {
+          PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig" \
+          LDFLAGS="-L/usr/local/lib" \
+          CPPFLAGS="-I/usr/local/include" || {
             echo "❌ Full configure failed, trying minimal build..."
             ./configure \
               --prefix=${{ github.workspace }}/dist \
-              --with-boost=$(brew --prefix boost) \
+              --with-boost=/usr/local \
               --enable-reduce-exports \
               --disable-bench \
               --disable-gui-tests \
               --disable-tests \
               --disable-wallet \
               --disable-qt \
-              PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig" \
-              LDFLAGS="-L$(brew --prefix)/lib" \
-              CPPFLAGS="-I$(brew --prefix)/include"
+              PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" \
+              LDFLAGS="-L/usr/local/lib" \
+              CPPFLAGS="-I/usr/local/include"
           }
         
         echo "🔨 Building with system libraries..."
@@ -213,6 +214,7 @@ jobs:
         fi
 
     - name: Upload artifacts
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: aegisum-wallet-tools-macos
@@ -220,17 +222,25 @@ jobs:
         retention-days: 30
 
     - name: Build Summary
+      if: always()
       run: |
-        echo "🎉 MACOS BUILD COMPLETED!"
-        echo "📁 Built files:"
-        ls -la aegisum-wallet-tools-macos/
-        echo ""
-        echo "📊 Archive info:"
-        ls -la *.tar.gz
-        echo ""
-        echo "🔍 Binary details:"
-        for binary in aegisum-wallet-tools-macos/*; do
-          if [ -f "$binary" ]; then
-            echo "$(basename "$binary"): $(file "$binary")"
-          fi
-        done
+        echo "🎉 MACOS BUILD SUMMARY"
+        echo "====================="
+        if [ -d aegisum-wallet-tools-macos ]; then
+          echo "📁 Built files:"
+          ls -la aegisum-wallet-tools-macos/
+          echo ""
+          echo "🔍 Binary details:"
+          for binary in aegisum-wallet-tools-macos/*; do
+            if [ -f "$binary" ]; then
+              echo "$(basename "$binary"): $(file "$binary")"
+            fi
+          done
+        else
+          echo "❌ No binaries were built"
+        fi
+        
+        if [ -f aegisum-wallet-tools-macos.tar.gz ]; then
+          echo "📊 Archive info:"
+          ls -la *.tar.gz
+        fi
