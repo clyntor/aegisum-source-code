@@ -1,0 +1,58 @@
+name: Build Linux Wallet
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup Build Environment
+      run: |
+        # Set Git identity for any git operations
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Make build script executable
+        chmod +x .github/builds/build_aegisum_linux.sh
+
+    - name: Fix file permissions
+      run: |
+        find . -name "*.sh" -exec chmod +x {} \;
+        find . -name "config.guess" -exec chmod +x {} \;
+        find . -name "config.sub" -exec chmod +x {} \;
+        find . -name "configure" -exec chmod +x {} \;
+        if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
+
+    - name: Run Official Aegisum Linux Builder
+      env:
+        CI: true
+        GITHUB_ACTIONS: true
+      run: |
+        echo "🚀 Starting Official Aegisum Linux Core Wallet build..."
+        ./.github/builds/build_aegisum_linux.sh
+
+    - name: Upload Linux wallet tools
+      uses: actions/upload-artifact@v4
+      with:
+        name: aegisum-wallet-tools-linux-x86_64
+        path: aegisum-wallet-tools-linux-x86_64.tar.gz
+        retention-days: 30
+
+    - name: Build Summary
+      run: |
+        echo "🎉 LINUX BUILD COMPLETED SUCCESSFULLY!"
+        echo "📁 Built files:"
+        ls -la compiled_wallets_linux/
