@@ -1,0 +1,77 @@
+name: Build Windows Wallet
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install Windows cross-compilation dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          libtool \
+          autotools-dev \
+          automake \
+          pkg-config \
+          bsdmainutils \
+          curl \
+          git \
+          python3 \
+          g++-mingw-w64-x86-64
+
+    - name: Set mingw32 compiler to posix
+      run: |
+        sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+    - name: Clean PATH and build Windows dependencies
+      run: |
+        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
+        cd depends
+        make HOST=x86_64-w64-mingw32 -j$(nproc)
+
+    - name: Configure and build Windows wallet
+      run: |
+        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
+        ./autogen.sh
+        CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
+        make -j$(nproc)
+
+    - name: Package Windows wallet tools
+      run: |
+        mkdir -p aegisum-wallet-tools-windows
+        cp src/aegisumd.exe aegisum-wallet-tools-windows/
+        cp src/aegisum-cli.exe aegisum-wallet-tools-windows/
+        cp src/aegisum-tx.exe aegisum-wallet-tools-windows/
+        if [ -f src/qt/aegisum-qt.exe ]; then
+          cp src/qt/aegisum-qt.exe aegisum-wallet-tools-windows/
+        fi
+        cd aegisum-wallet-tools-windows
+        zip -r ../aegisum-wallet-tools-windows-x86_64.zip .
+        cd ..
+
+    - name: Upload Windows wallet tools
+      uses: actions/upload-artifact@v4
+      with:
+        name: aegisum-wallet-tools-windows-x86_64
+        path: aegisum-wallet-tools-windows-x86_64.zip
+        retention-days: 30
+
+    - name: List built Windows files
+      run: |
+        echo "Built Windows wallet tools:"
+        ls -la aegisum-wallet-tools-windows/
+        echo "Archive created:"
+        ls -la aegisum-wallet-tools-windows-x86_64.zip
