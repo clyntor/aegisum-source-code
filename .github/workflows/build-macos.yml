@@ -26,7 +26,7 @@ jobs:
         echo "Architecture: $(uname -m)"
         echo "Available CPUs: $(sysctl -n hw.ncpu)"
 
-    - name: Install Dependencies (ignore warnings)
+    - name: Install Dependencies
       continue-on-error: true
       run: |
         echo "📦 Installing dependencies..."
@@ -34,10 +34,25 @@ jobs:
         
         brew update
         
-        # Install core dependencies
-        brew install automake libtool boost miniupnpc libnatpmp pkg-config python@3.11 qt@5 zmq qrencode protobuf
+        # Install all required dependencies including libfmt
+        brew install \
+          automake \
+          libtool \
+          boost \
+          miniupnpc \
+          libnatpmp \
+          pkg-config \
+          python@3.11 \
+          qt@5 \
+          zmq \
+          qrencode \
+          protobuf \
+          fmt \
+          openssl \
+          libevent \
+          sqlite
         
-        echo "✅ Core dependencies installed"
+        echo "✅ Dependencies installed"
         set -e
 
     - name: Setup Python Environment
@@ -83,15 +98,16 @@ jobs:
         find . -name "configure" -exec chmod +x {} \;
         if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
 
-    - name: Build without wallet (avoid Berkeley DB issues)
+    - name: Build with comprehensive library paths
       env:
         PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig:/usr/local/lib/pkgconfig"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib -L/usr/local/lib"
         CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include -I/usr/local/include"
+        CXXFLAGS: "-std=c++17"
       run: |
-        echo "🔧 Configuring build without wallet (to avoid Berkeley DB)..."
+        echo "🔧 Configuring build with all dependencies..."
         ./autogen.sh
         
         ./configure \
@@ -103,17 +119,19 @@ jobs:
           --disable-tests \
           --disable-wallet \
           --disable-qt \
+          --with-libs \
           PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig" \
           LDFLAGS="-L/usr/local/lib -L${{ github.workspace }}/local/protobuf-3.6.1/lib" \
-          CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include"
+          CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include" \
+          LIBS="-lfmt"
         
         echo "🔨 Building Aegisum (daemon and CLI tools)..."
         make -j$(sysctl -n hw.ncpu)
 
-    - name: Try wallet build with system Berkeley DB
+    - name: Try wallet build with system libraries
       continue-on-error: true
       run: |
-        echo "🔄 Attempting wallet build with system libraries..."
+        echo "🔄 Attempting wallet build..."
         make clean
         
         ./configure \
@@ -124,12 +142,38 @@ jobs:
           --disable-bench \
           --disable-gui-tests \
           --disable-tests \
+          --with-libs \
           PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig:${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig" \
           LDFLAGS="-L/usr/local/lib -L${{ github.workspace }}/local/protobuf-3.6.1/lib" \
-          CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include"
+          CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include" \
+          LIBS="-lfmt"
         
         echo "🔨 Building with wallet support..."
         make -j$(sysctl -n hw.ncpu) || echo "Wallet build failed, continuing with daemon-only build"
+
+    - name: Try depends build as final fallback
+      if: failure()
+      continue-on-error: true
+      env:
+        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
+        PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
+        PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
+      run: |
+        echo "🔄 Trying depends build as fallback..."
+        cd depends
+        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu) || echo "Depends build failed"
+        cd ..
+        
+        if [ -d "depends/x86_64-apple-darwin" ]; then
+          ./autogen.sh
+          CONFIG_SITE=$PWD/depends/x86_64-apple-darwin/share/config.site ./configure \
+            --prefix=/ \
+            --enable-reduce-exports \
+            --disable-bench \
+            --disable-gui-tests
+          
+          make -j$(sysctl -n hw.ncpu) || echo "Depends-based build failed"
+        fi
 
     - name: Package wallet tools
       run: |
@@ -151,7 +195,7 @@ jobs:
           cp src/qt/aegisum-qt aegisum-wallet-tools-macos/
           echo "✅ aegisum-qt included"
         else
-          echo "⚠️ aegisum-qt not found (expected if wallet disabled)"
+          echo "⚠️ aegisum-qt not found"
         fi
         
         # Show what we actually built
@@ -200,8 +244,5 @@ jobs:
         fi
         
         echo ""
-        echo "📋 Build strategy used:"
-        echo "- Avoided Berkeley DB compilation issues"
-        echo "- Built daemon and CLI tools first"
-        echo "- Attempted wallet build as secondary step"
-        echo "- Used system libraries where possible"
+        echo "📋 Dependencies installed:"
+        brew list | grep -E "(fmt|boost|protobuf|qt|zmq)" || echo "Some dependencies may not be visible"
