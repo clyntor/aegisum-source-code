@@ -24,6 +24,14 @@ jobs:
         # Set Git identity for any git operations
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Show system info
+        echo "🖥️ System info:"
+        uname -a
+        echo "📍 Current PATH: $PATH"
+        echo "🔧 Available tools:"
+        which make || echo "make not found"
+        which sysctl || echo "sysctl not found"
 
     - name: Clean Protobuf Installation
       run: |
@@ -48,7 +56,8 @@ jobs:
           python@3.11 \
           qt@5 \
           zmq \
-          qrencode
+          qrencode \
+          make
         echo "✅ Dependencies installed"
 
     - name: Install specific Protobuf version
@@ -59,8 +68,8 @@ jobs:
         curl -L https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-cpp-3.6.1.tar.gz | tar xz
         cd protobuf-3.6.1
         ./configure --prefix=${{ github.workspace }}/local/protobuf-3.6.1
-        make -j$(sysctl -n hw.ncpu)
-        make install
+        /usr/bin/make -j$(sysctl -n hw.ncpu)
+        /usr/bin/make install
         echo "✅ Protobuf 3.6.1 installed successfully"
 
     - name: Fix file permissions
@@ -75,7 +84,7 @@ jobs:
 
     - name: Build dependencies
       env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/opt/homebrew/bin:${{ env.PATH }}"
+        PATH: "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin:${{ github.workspace }}/local/protobuf-3.6.1/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
         LD_LIBRARY_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib"
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib"
@@ -83,13 +92,17 @@ jobs:
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
         echo "🏗️ Building dependencies..."
+        echo "📍 Using PATH: $PATH"
+        echo "🔧 Checking tools:"
+        which make
+        which sysctl
         cd depends
-        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu)
+        /usr/bin/make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu)
         echo "✅ Dependencies built successfully"
 
     - name: Run autogen
       env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/opt/homebrew/bin:${{ env.PATH }}"
+        PATH: "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin:${{ github.workspace }}/local/protobuf-3.6.1/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
@@ -99,7 +112,7 @@ jobs:
 
     - name: Configure build
       env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/opt/homebrew/bin:${{ env.PATH }}"
+        PATH: "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin:${{ github.workspace }}/local/protobuf-3.6.1/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
         LD_LIBRARY_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib"
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib"
@@ -117,7 +130,7 @@ jobs:
 
     - name: Build wallet
       env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/opt/homebrew/bin:${{ env.PATH }}"
+        PATH: "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin:${{ github.workspace }}/local/protobuf-3.6.1/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
         LD_LIBRARY_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib"
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib"
@@ -125,7 +138,7 @@ jobs:
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
         echo "🔨 Building wallet..."
-        make -j$(sysctl -n hw.ncpu)
+        /usr/bin/make -j$(sysctl -n hw.ncpu)
         echo "✅ Wallet build completed"
 
     - name: Create macOS App Bundle
