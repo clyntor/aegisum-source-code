@@ -27,12 +27,15 @@ jobs:
 
     - name: Clean Protobuf Installation
       run: |
-        # Ensure clean slate for Protobuf (from your friend's script)
-        brew uninstall --ignore-dependencies protobuf || true
-        brew cleanup || true
+        echo "🧹 Cleaning any existing protobuf installations..."
+        # Ensure clean slate for Protobuf - ignore errors if not installed
+        brew uninstall --ignore-dependencies protobuf 2>/dev/null || echo "✅ No existing protobuf to remove"
+        brew cleanup 2>/dev/null || true
+        echo "✅ Cleanup completed"
 
     - name: Install build dependencies
       run: |
+        echo "📦 Installing build dependencies..."
         brew update
         brew install \
           automake \
@@ -46,10 +49,11 @@ jobs:
           qt@5 \
           zmq \
           qrencode
+        echo "✅ Dependencies installed"
 
     - name: Install specific Protobuf version
       run: |
-        # Install specific protobuf version (like your friend's approach)
+        echo "🔧 Installing protobuf 3.6.1 from source..."
         mkdir -p local
         cd local
         curl -L https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-cpp-3.6.1.tar.gz | tar xz
@@ -57,16 +61,19 @@ jobs:
         ./configure --prefix=${{ github.workspace }}/local/protobuf-3.6.1
         make -j$(sysctl -n hw.ncpu)
         make install
+        echo "✅ Protobuf 3.6.1 installed successfully"
 
     - name: Fix file permissions
       run: |
+        echo "🔧 Fixing file permissions..."
         find . -name "*.sh" -exec chmod +x {} \;
         find . -name "config.guess" -exec chmod +x {} \;
         find . -name "config.sub" -exec chmod +x {} \;
         find . -name "configure" -exec chmod +x {} \;
         if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
+        echo "✅ Permissions fixed"
 
-    - name: Clean PATH and build dependencies
+    - name: Build dependencies
       env:
         PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/opt/homebrew/bin:${{ env.PATH }}"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
@@ -75,9 +82,11 @@ jobs:
         CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
+        echo "🏗️ Building dependencies..."
         export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         cd depends
         make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu)
+        echo "✅ Dependencies built successfully"
 
     - name: Run autogen
       env:
@@ -85,8 +94,10 @@ jobs:
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
+        echo "🔄 Running autogen..."
         export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         ./autogen.sh
+        echo "✅ Autogen completed"
 
     - name: Configure build
       env:
@@ -97,6 +108,7 @@ jobs:
         CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
+        echo "⚙️ Configuring build..."
         export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         CONFIG_SITE=$PWD/depends/x86_64-apple-darwin/share/config.site ./configure \
           --prefix=/ \
@@ -104,6 +116,7 @@ jobs:
           --enable-reduce-exports \
           --disable-bench \
           --disable-gui-tests
+        echo "✅ Configuration completed"
 
     - name: Build wallet
       env:
@@ -114,10 +127,12 @@ jobs:
         CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
       run: |
+        echo "🔨 Building wallet..."
         export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         make -j$(sysctl -n hw.ncpu)
+        echo "✅ Wallet build completed"
 
-    - name: Create macOS App Bundle (if Qt wallet built)
+    - name: Create macOS App Bundle
       run: |
         if [ -f src/qt/aegisum-qt ]; then
           echo "🍎 Creating macOS app bundle..."
@@ -129,25 +144,25 @@ jobs:
           
           # Create Info.plist
           cat > Aegisum-Qt.app/Contents/Info.plist << 'EOF'
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleExecutable</key>
-            <string>aegisum-qt</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.aegisum.aegisum-qt</string>
-            <key>CFBundleName</key>
-            <string>Aegisum</string>
-            <key>CFBundleVersion</key>
-            <string>1.0</string>
-            <key>CFBundleShortVersionString</key>
-            <string>1.0</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-        </dict>
-        </plist>
-        EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>aegisum-qt</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.aegisum.aegisum-qt</string>
+    <key>CFBundleName</key>
+    <string>Aegisum</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+</dict>
+</plist>
+EOF
           echo "✅ App bundle created"
         else
           echo "ℹ️ No Qt wallet built, skipping app bundle creation"
@@ -167,6 +182,7 @@ jobs:
 
     - name: Package wallet tools
       run: |
+        echo "📦 Packaging wallet tools..."
         mkdir -p aegisum-wallet-tools-macos
         cp src/aegisumd aegisum-wallet-tools-macos/
         cp src/aegisum-cli aegisum-wallet-tools-macos/
@@ -178,18 +194,13 @@ jobs:
           cp -r Aegisum-Qt.app aegisum-wallet-tools-macos/
         fi
         tar -czf aegisum-wallet-tools-macos-x86_64.tar.gz aegisum-wallet-tools-macos/
+        echo "✅ Packaging completed"
 
     - name: Upload macOS wallet tools
       uses: actions/upload-artifact@v4
       with:
         name: aegisum-wallet-tools-macos-x86_64
-        path: |
-          aegisum-wallet-tools-macos-x86_64.tar.gz
-          aegisum-wallet-tools-macos/aegisumd
-          aegisum-wallet-tools-macos/aegisum-cli
-          aegisum-wallet-tools-macos/aegisum-tx
-          aegisum-wallet-tools-macos/aegisum-qt
-          aegisum-wallet-tools-macos/Aegisum-Qt.app
+        path: aegisum-wallet-tools-macos-x86_64.tar.gz
         retention-days: 30
 
     - name: Build Summary
