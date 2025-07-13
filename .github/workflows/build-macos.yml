@@ -56,7 +56,8 @@ jobs:
           python@3.11 \
           qt@5 \
           zmq \
-          qrencode
+          qrencode \
+          make
         echo "✅ Dependencies installed"
 
     - name: Install specific Protobuf version
@@ -98,7 +99,9 @@ jobs:
         which make
         which sysctl
         cd depends
-        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu) CXXFLAGS="-Wno-deprecated-declarations -Wno-error=deprecated-declarations" CFLAGS="-Wno-deprecated-declarations -Wno-error=deprecated-declarations"
+        make HOST=x86_64-apple-darwin -j$(sysctl -n hw.ncpu) \
+          CXXFLAGS="-Wno-deprecated-declarations -Wno-error=deprecated-declarations" \
+          CFLAGS="-Wno-deprecated-declarations -Wno-error=deprecated-declarations"
         echo "✅ Dependencies built successfully"
 
     - name: Run autogen
@@ -145,7 +148,9 @@ jobs:
         CFLAGS: "-Wno-deprecated-declarations -Wno-error=deprecated-declarations"
       run: |
         echo "🔨 Building wallet..."
-        make -j$(sysctl -n hw.ncpu)
+        make -j$(sysctl -n hw.ncpu) \
+          CXXFLAGS="-Wno-deprecated-declarations -Wno-error=deprecated-declarations" \
+          CFLAGS="-Wno-deprecated-declarations -Wno-error=deprecated-declarations"
         echo "✅ Wallet build completed"
 
     - name: Create macOS App Bundle
