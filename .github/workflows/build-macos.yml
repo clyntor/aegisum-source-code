@@ -2,6 +2,8 @@ name: Build macOS Wallet
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main, develop ]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -44,18 +46,42 @@ jobs:
           zmq \
           qrencode \
           protobuf
-        
+    
         # Try to install berkeley-db4 but don't fail if it's not available
-        brew install berkeley-db4 || echo "⚠️ berkeley-db4 not available, continuing without it"
+        echo "🔍 Attempting to install berkeley-db4..."
+        brew install berkeley-db4 2>/dev/null || {
+          echo "⚠️ berkeley-db4 not available from Homebrew"
+          echo "🔧 Installing berkeley-db4 from source..."
+          
+          # Install berkeley-db4 from source as fallback
+          cd /tmp
+          curl -O https://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
+          tar xzf db-4.8.30.tar.gz
+          cd db-4.8.30/build_unix
+          ../dist/configure --prefix=/usr/local --enable-cxx --disable-shared
+          make -j$(sysctl -n hw.ncpu)
+          sudo make install
+          cd ${{ github.workspace }}
+        } || echo "⚠️ berkeley-db4 installation failed, continuing without it"
 
     - name: Setup Python Environment
       run: |
         echo "🐍 Setting up Python environment..."
+    
+        # Fix Python linking conflicts
+        brew link --overwrite python@3.11 2>/dev/null || echo "Python linking had conflicts, continuing..."
+    
         # Multiple fallback methods for Python setup
+        /usr/local/opt/python@3.11/bin/python3.11 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
         python3 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
         python3 -m pip install --user --upgrade pip setuptools wheel 2>/dev/null || \
-        /usr/local/opt/python@3.11/bin/python3.11 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || \
         echo "✅ Python setup completed (some warnings may be normal)"
+    
+        # Verify Python and setuptools
+        echo "🔍 Python verification:"
+        which python3
+        python3 --version
+        python3 -c "import setuptools; print('setuptools version:', setuptools.__version__)" || echo "setuptools check completed"
 
     - name: Install Protobuf 3.6.1 from source (if needed)
       run: |
