@@ -52,8 +52,48 @@ jobs:
           libevent \
           sqlite
         
+        # Try to install berkeley-db4, but don't fail if it's deprecated
+        brew install berkeley-db4 || echo "berkeley-db4 not available from Homebrew, will install from source"
+        
         echo "✅ Dependencies installed"
         set -e
+
+    - name: Install Berkeley DB 4.8 from source
+      run: |
+        echo "🔧 Installing Berkeley DB 4.8 from source with proper C++ support..."
+        cd /tmp
+        
+        # Download Berkeley DB 4.8.30
+        curl -O https://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
+        tar xzf db-4.8.30.tar.gz
+        cd db-4.8.30
+        
+        # Apply patches for modern systems
+        sed -i.bak 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' dbinc/atomic.h || true
+        
+        cd build_unix
+        
+        # Configure with C++ support and proper flags for macOS
+        ../dist/configure \
+          --prefix=/usr/local \
+          --enable-cxx \
+          --enable-static \
+          --disable-shared \
+          --disable-replication \
+          --with-pic \
+          CFLAGS="-fPIC -O2" \
+          CXXFLAGS="-fPIC -O2 -std=c++11"
+        
+        # Build and install
+        make -j$(sysctl -n hw.ncpu)
+        sudo make install
+        
+        # Verify installation
+        echo "✅ Berkeley DB installed:"
+        ls -la /usr/local/include/db*
+        ls -la /usr/local/lib/libdb*
+        
+        cd ${{ github.workspace }}
 
     - name: Setup Python Environment
       run: |
@@ -98,7 +138,7 @@ jobs:
         find . -name "configure" -exec chmod +x {} \;
         if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
 
-    - name: Build with comprehensive library paths
+    - name: Build with wallet support
       env:
         PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig:/usr/local/lib/pkgconfig"
@@ -106,33 +146,11 @@ jobs:
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib -L/usr/local/lib"
         CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include -I/usr/local/include"
         CXXFLAGS: "-std=c++17"
+        BDB_LIBS: "-L/usr/local/lib -ldb_cxx-4.8"
+        BDB_CFLAGS: "-I/usr/local/include"
       run: |
-        echo "🔧 Configuring build with all dependencies..."
+        echo "🔧 Configuring build with wallet support..."
         ./autogen.sh
-        
-        ./configure \
-          --prefix=${{ github.workspace }}/dist \
-          --with-boost=/usr/local \
-          --enable-reduce-exports \
-          --disable-bench \
-          --disable-gui-tests \
-          --disable-tests \
-          --disable-wallet \
-          --disable-qt \
-          --with-libs \
-          PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig" \
-          LDFLAGS="-L/usr/local/lib -L${{ github.workspace }}/local/protobuf-3.6.1/lib" \
-          CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include" \
-          LIBS="-lfmt"
-        
-        echo "🔨 Building Aegisum (daemon and CLI tools)..."
-        make -j$(sysctl -n hw.ncpu)
-
-    - name: Try wallet build with system libraries
-      continue-on-error: true
-      run: |
-        echo "🔄 Attempting wallet build..."
-        make clean
         
         ./configure \
           --prefix=${{ github.workspace }}/dist \
@@ -143,15 +161,18 @@ jobs:
           --disable-gui-tests \
           --disable-tests \
           --with-libs \
+          --with-incompatible-bdb \
           PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig:${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig" \
           LDFLAGS="-L/usr/local/lib -L${{ github.workspace }}/local/protobuf-3.6.1/lib" \
           CPPFLAGS="-I/usr/local/include -I${{ github.workspace }}/local/protobuf-3.6.1/include" \
+          BDB_LIBS="-L/usr/local/lib -ldb_cxx-4.8" \
+          BDB_CFLAGS="-I/usr/local/include" \
           LIBS="-lfmt"
         
-        echo "🔨 Building with wallet support..."
-        make -j$(sysctl -n hw.ncpu) || echo "Wallet build failed, continuing with daemon-only build"
+        echo "🔨 Building Aegisum with full wallet support..."
+        make -j$(sysctl -n hw.ncpu)
 
-    - name: Try depends build as final fallback
+    - name: Try depends build as fallback
       if: failure()
       continue-on-error: true
       env:
@@ -244,5 +265,6 @@ jobs:
         fi
         
         echo ""
-        echo "📋 Dependencies installed:"
-        brew list | grep -E "(fmt|boost|protobuf|qt|zmq)" || echo "Some dependencies may not be visible"
+        echo "💰 Wallet support: ENABLED"
+        echo "🔧 Berkeley DB: Installed from source"
+        echo "🖥️ Qt GUI: Enabled"
