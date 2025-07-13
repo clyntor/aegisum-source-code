@@ -1,0 +1,70 @@
+name: Build Linux Wallet
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          libtool \
+          autotools-dev \
+          automake \
+          pkg-config \
+          bsdmainutils \
+          curl \
+          git \
+          python3
+
+    - name: Clean PATH and build dependencies
+      run: |
+        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
+        cd depends
+        make HOST=x86_64-pc-linux-gnu -j$(nproc)
+
+    - name: Configure and build wallet
+      run: |
+        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
+        ./autogen.sh
+        CONFIG_SITE=$PWD/depends/x86_64-pc-linux-gnu/share/config.site ./configure --prefix=/
+        make -j$(nproc)
+
+    - name: Package wallet tools
+      run: |
+        mkdir -p aegisum-wallet-tools-linux
+        cp src/aegisumd aegisum-wallet-tools-linux/
+        cp src/aegisum-cli aegisum-wallet-tools-linux/
+        cp src/aegisum-tx aegisum-wallet-tools-linux/
+        if [ -f src/qt/aegisum-qt ]; then
+          cp src/qt/aegisum-qt aegisum-wallet-tools-linux/
+        fi
+        tar -czf aegisum-wallet-tools-linux-x86_64.tar.gz aegisum-wallet-tools-linux/
+
+    - name: Upload Linux wallet tools
+      uses: actions/upload-artifact@v4
+      with:
+        name: aegisum-wallet-tools-linux-x86_64
+        path: aegisum-wallet-tools-linux-x86_64.tar.gz
+        retention-days: 30
+
+    - name: List built files
+      run: |
+        echo "Built Linux wallet tools:"
+        ls -la aegisum-wallet-tools-linux/
+        echo "Archive created:"
+        ls -la aegisum-wallet-tools-linux-x86_64.tar.gz
