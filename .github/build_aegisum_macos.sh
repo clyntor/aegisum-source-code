@@ -23,11 +23,10 @@ BLUE="\033[0;34m"
 RESET="\033[0m"
 
 # Configuration
-AEGISUM_REPO="https://github.com/Aegisum/aegisum-core.git"
-COMPILED_DIR="$(pwd)/compiled_wallets_macos"
 PROTOBUF_DIR="$HOME/local/protobuf-3.6.1"
 PROTOBUF_TAR="protobuf-cpp-3.6.1.tar.gz"
 PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/${PROTOBUF_TAR}"
+COMPILED_DIR="$(pwd)/compiled_wallets_macos"
 
 # ================================================================================================
 # Ensure proper environment setup
@@ -129,33 +128,10 @@ if [ -n "$GITHUB_ENV" ]; then
 fi
 
 # ================================================================================================
-# Auto-update Aegisum source code
+# Build from local repository
 # ================================================================================================
-echo -e "\n${GREEN}🔄 Auto-updating Aegisum source code...${RESET}"
-if [ ! -d "Aegisum" ]; then
-    echo -e "${CYAN}📥 Cloning latest Aegisum core repository...${RESET}"
-    git clone "$AEGISUM_REPO" Aegisum
-    echo -e "${GREEN}✔ Successfully cloned Aegisum repository${RESET}"
-else
-    echo -e "${CYAN}🔄 Updating existing Aegisum repository...${RESET}"
-    cd Aegisum
-    
-    # Get current and latest commit info
-    CURRENT_COMMIT=$(git rev-parse HEAD)
-    git fetch origin
-    LATEST_COMMIT=$(git rev-parse origin/main)
-    
-    if [ "$CURRENT_COMMIT" != "$LATEST_COMMIT" ]; then
-        echo -e "${YELLOW}📈 New updates available! Updating from $CURRENT_COMMIT to $LATEST_COMMIT${RESET}"
-        git pull origin main
-        echo -e "${GREEN}✔ Successfully updated to latest version${RESET}"
-    else
-        echo -e "${CYAN}✔ Already up to date with latest version${RESET}"
-    fi
-    cd ..
-fi
-
-cd Aegisum
+echo -e "\n${GREEN}🔄 Building from local repository...${RESET}"
+echo -e "${CYAN}✔ Using current repository source code${RESET}"
 
 # ================================================================================================
 # Apply compatibility patches
