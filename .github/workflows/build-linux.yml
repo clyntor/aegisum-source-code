@@ -2,7 +2,7 @@ name: Build Linux Wallet
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master, develop, development ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -31,17 +31,33 @@ jobs:
           git \
           python3
 
+    - name: Fix file permissions
+      run: |
+        find . -name "*.sh" -exec chmod +x {} \;
+        find . -name "config.guess" -exec chmod +x {} \;
+        find . -name "config.sub" -exec chmod +x {} \;
+        find . -name "configure" -exec chmod +x {} \;
+        if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
+
     - name: Clean PATH and build dependencies
       run: |
         export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         cd depends
         make HOST=x86_64-pc-linux-gnu -j$(nproc)
 
-    - name: Configure and build wallet
+    - name: Run autogen
       run: |
         export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         ./autogen.sh
+
+    - name: Configure build
+      run: |
+        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         CONFIG_SITE=$PWD/depends/x86_64-pc-linux-gnu/share/config.site ./configure --prefix=/
+
+    - name: Build wallet
+      run: |
+        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
         make -j$(nproc)
 
     - name: Package wallet tools
