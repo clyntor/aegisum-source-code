@@ -2,10 +2,16 @@ name: Build Linux Wallet
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   build-linux:
     runs-on: ubuntu-22.04
+    timeout-minutes: 60
     
     steps:
     - name: Checkout code
@@ -13,19 +19,14 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install build dependencies
+    - name: Setup Build Environment
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          libtool \
-          autotools-dev \
-          automake \
-          pkg-config \
-          bsdmainutils \
-          curl \
-          git \
-          python3
+        # Set Git identity for any git operations
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Make build script executable
+        chmod +x .github/builds/build_aegisum_linux.sh
 
     - name: Fix file permissions
       run: |
@@ -35,37 +36,13 @@ jobs:
         find . -name "configure" -exec chmod +x {} \;
         if [ -f autogen.sh ]; then chmod +x autogen.sh; fi
 
-    - name: Clean PATH and build dependencies
+    - name: Run Official Aegisum Linux Builder
+      env:
+        CI: true
+        GITHUB_ACTIONS: true
       run: |
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
-        cd depends
-        make HOST=x86_64-pc-linux-gnu -j$(nproc)
-
-    - name: Run autogen
-      run: |
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
-        ./autogen.sh
-
-    - name: Configure build
-      run: |
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
-        CONFIG_SITE=$PWD/depends/x86_64-pc-linux-gnu/share/config.site ./configure --prefix=/
-
-    - name: Build wallet
-      run: |
-        export PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
-        make -j$(nproc)
-
-    - name: Package wallet tools
-      run: |
-        mkdir -p aegisum-wallet-tools-linux
-        cp src/aegisumd aegisum-wallet-tools-linux/
-        cp src/aegisum-cli aegisum-wallet-tools-linux/
-        cp src/aegisum-tx aegisum-wallet-tools-linux/
-        if [ -f src/qt/aegisum-qt ]; then
-          cp src/qt/aegisum-qt aegisum-wallet-tools-linux/
-        fi
-        tar -czf aegisum-wallet-tools-linux-x86_64.tar.gz aegisum-wallet-tools-linux/
+        echo "🚀 Starting Official Aegisum Linux Core Wallet build..."
+        ./.github/builds/build_aegisum_linux.sh
 
     - name: Upload Linux wallet tools
       uses: actions/upload-artifact@v4
@@ -74,9 +51,8 @@ jobs:
         path: aegisum-wallet-tools-linux-x86_64.tar.gz
         retention-days: 30
 
-    - name: List built files
+    - name: Build Summary
       run: |
-        echo "Built Linux wallet tools:"
-        ls -la aegisum-wallet-tools-linux/
-        echo "Archive created:"
-        ls -la aegisum-wallet-tools-linux-x86_64.tar.gz
+        echo "🎉 LINUX BUILD COMPLETED SUCCESSFULLY!"
+        echo "📁 Built files:"
+        ls -la compiled_wallets_linux/
