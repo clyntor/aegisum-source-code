@@ -55,24 +55,30 @@ jobs:
         echo "✅ Dependencies installed"
         set -e
 
-    - name: Setup Python Environment
+    - name: Setup Python Environment Properly
       run: |
-        echo "🐍 Setting up Python environment..."
+        echo "🐍 Setting up Python environment for depends build..."
         
         # Force link Python, ignoring conflicts
         brew link --overwrite --force python@3.11 2>/dev/null || echo "Python linking completed"
         
-        # Use the Homebrew Python directly
-        PYTHON="/usr/local/opt/python@3.11/bin/python3.11"
+        # Add Homebrew Python to PATH
+        export PATH="/usr/local/opt/python@3.11/bin:$PATH"
         
-        if [ -f "$PYTHON" ]; then
-          echo "✅ Using Homebrew Python: $PYTHON"
-          $PYTHON --version
-          $PYTHON -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || echo "Python setup completed"
-        else
-          echo "Using system Python"
-          python3 -m pip install --break-system-packages --upgrade pip setuptools wheel 2>/dev/null || echo "Python setup completed"
-        fi
+        # Verify Python installation
+        echo "Python version: $(python3 --version)"
+        echo "Python location: $(which python3)"
+        
+        # Install setuptools globally with --break-system-packages
+        python3 -m pip install --break-system-packages --upgrade pip setuptools wheel ez_setup
+        
+        # Verify setuptools is available
+        python3 -c "import setuptools; print('setuptools version:', setuptools.__version__)"
+        python3 -c "import ez_setup; print('ez_setup available')" || echo "ez_setup not available, but setuptools should work"
+        
+        # Make sure the Python environment is available for subsequent steps
+        echo "PATH=/usr/local/opt/python@3.11/bin:$PATH" >> $GITHUB_ENV
+        echo "PYTHONPATH=/usr/local/lib/python3.11/site-packages" >> $GITHUB_ENV
 
     - name: Install Protobuf 3.6.1 from source
       run: |
@@ -100,13 +106,19 @@ jobs:
 
     - name: Build using depends system (includes Berkeley DB)
       env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
+        PATH: "/usr/local/opt/python@3.11/bin:${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib"
         CPPFLAGS: "-I${{ github.workspace }}/local/protobuf-3.6.1/include"
+        PYTHONPATH: "/usr/local/lib/python3.11/site-packages"
       run: |
         echo "🏗️ Building dependencies using depends system..."
+        
+        # Verify Python environment before building
+        echo "Python in PATH: $(which python3)"
+        python3 -c "import setuptools; print('✅ setuptools available')"
+        
         cd depends
         
         # Build all dependencies including Berkeley DB for macOS
@@ -131,7 +143,7 @@ jobs:
       if: failure()
       continue-on-error: true
       env:
-        PATH: "${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
+        PATH: "/usr/local/opt/python@3.11/bin:${{ github.workspace }}/local/protobuf-3.6.1/bin:/usr/local/bin:/usr/bin:/bin"
         PKG_CONFIG_PATH: "${{ github.workspace }}/local/protobuf-3.6.1/lib/pkgconfig:/usr/local/lib/pkgconfig"
         PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
         LDFLAGS: "-L${{ github.workspace }}/local/protobuf-3.6.1/lib -L/usr/local/lib"
