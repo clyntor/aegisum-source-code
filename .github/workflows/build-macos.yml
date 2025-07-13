@@ -1,4 +1,4 @@
-name: Official Aegisum macOS Core Wallet Builder
+name: Build macOS Wallet
 
 on:
   # Manual trigger only
