@@ -80,7 +80,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
           # Make build script executable
-          chmod +x build_aegisum_macos.sh
+          chmod +x .github/build_aegisum_macos.sh
 
       - name: Clean Protobuf Installation
         run: |
@@ -101,7 +101,7 @@ jobs:
           PROTOC: "${{ github.workspace }}/local/protobuf-3.6.1/bin/protoc"
         run: |
           echo "🚀 Starting Official Aegisum macOS Core Wallet build..."
-          ./build_aegisum_macos.sh
+          ./.github/build_aegisum_macos.sh
 
       - name: Verify Build Artifacts
         run: |
