@@ -244,6 +244,8 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();
+        
+        vSeeds.emplace_back("testnet.aegisum.com");        
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,1);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
