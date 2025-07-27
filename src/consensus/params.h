@@ -98,6 +98,10 @@ struct Params {
     int64_t nPowTargetTimespanOneBlock;
     uint32_t nMinerConfirmationWindowOneBlock;
 
+    // Emergency difficulty reset parameters
+    int64_t nEmergencyDifficultyResetTime; // Time threshold for emergency reset (default: 30 minutes)
+    bool fAllowEmergencyDifficultyReset;   // Enable/disable emergency reset feature
+
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
 
     /** Helper functions to get parameters based on block height */
