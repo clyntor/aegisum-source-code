@@ -196,11 +196,11 @@ public:
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
-        consensus.nDifficultyChangeActivationHeight = 6; // Activate new difficulty rules at block 6
-        consensus.nOneBlockRetargetActivationHeight = 12; // Activate 1-block retarget at block 12 on testnet
+        consensus.nDifficultyChangeActivationHeight = 90; // Activate new difficulty rules at block 90
+        consensus.nOneBlockRetargetActivationHeight = 93; // Activate 1-block retarget at block 93 on testnet
 
         // Emergency difficulty reset parameters (shorter time for testing)
-        consensus.nEmergencyDifficultyResetTime = 10 * 60; // 10 minutes for testnet
+        consensus.nEmergencyDifficultyResetTime = 15 * 60; // 15 minutes for testnet
         consensus.fAllowEmergencyDifficultyReset = true;   // Enable emergency reset
 
         consensus.fPowAllowMinDifficultyBlocks = false;
