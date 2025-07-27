@@ -77,16 +77,16 @@ public:
         consensus.MinBIP9WarningHeight = 0; // segwit activation height + miner confirmation window
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
-        // Original parameters (blocks 0-45999)
+        // Original parameters (blocks 0-44999)
         consensus.nPowTargetTimespan = 9 * 60;  // 9 minutes
         consensus.nPowTargetSpacing = 3 * 60;   // 3 minutes per block
         consensus.nMinerConfirmationWindow = 12; // nPowTargetTimespan / nPowTargetSpacing * 4
 
         // Activation heights
         consensus.nDifficultyChangeActivationHeight = 21000; // Activate new difficulty rules at block 21000
-        consensus.nOneBlockRetargetActivationHeight = 46000; // Activate 1-block retarget at block 46000
+        consensus.nOneBlockRetargetActivationHeight = 45000; // Activate 1-block retarget at block 46000
 
-        // New parameters for 1-block retarget (blocks 46000+)
+        // New parameters for 1-block retarget (blocks 45000+)
         consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget
         consensus.nMinerConfirmationWindowOneBlock = 4; // (3*60)/(3*60) * 4 = 1 * 4 = 4
 
