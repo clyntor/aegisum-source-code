@@ -15,7 +15,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     assert(pindexLast != nullptr);
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
 
-    // Check if we're using 1-block retarget (after block 46000)
+    // Check if we're using 1-block retarget (after block 45000)
     bool fOneBlockRetarget = (pindexLast->nHeight + 1) >= params.nOneBlockRetargetActivationHeight;
     
     if (fOneBlockRetarget) {
