@@ -15,8 +15,27 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     assert(pindexLast != nullptr);
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
 
+    // Check if we're using 1-block retarget (after block 46000)
+    bool fOneBlockRetarget = (pindexLast->nHeight + 1) >= params.nOneBlockRetargetActivationHeight;
+    
+    if (fOneBlockRetarget) {
+        // 1-block retarget: adjust difficulty every block
+        if (pindexLast->pprev == nullptr) {
+            // Genesis block case
+            return nProofOfWorkLimit;
+        }
+        
+        // For 1-block retarget, use the previous block as the reference
+        return CalculateNextWorkRequired(pindexLast, pindexLast->pprev->GetBlockTime(), params);
+    }
+
+    // Original logic for blocks before 1-block retarget activation
     // Only change once per difficulty adjustment interval
-    if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
+    // Get the correct difficulty adjustment interval for this height
+    int64_t nDifficultyAdjustmentInterval = params.GetDifficultyAdjustmentInterval(pindexLast->nHeight + 1);
+
+    // Only change once per difficulty adjustment interval
+    if ((pindexLast->nHeight+1) % nDifficultyAdjustmentInterval != 0)
     {
         if (params.fPowAllowMinDifficultyBlocks)
         {
@@ -29,7 +48,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
             {
                 // Return the last non-special-min-difficulty-rules-block
                 const CBlockIndex* pindex = pindexLast;
-                while (pindex->pprev && pindex->nHeight % params.DifficultyAdjustmentInterval() != 0 && pindex->nBits == nProofOfWorkLimit)
+                while (pindex->pprev && pindex->nHeight % nDifficultyAdjustmentInterval != 0 && pindex->nBits == nProofOfWorkLimit)
                     pindex = pindex->pprev;
                 return pindex->nBits;
             }
@@ -40,9 +59,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     // Go back by what we want to be 14 days worth of blocks
     // Aegisum: This fixes an issue where a 51% attack can change difficulty at will.
     // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
-    int blockstogoback = params.DifficultyAdjustmentInterval()-1;
-    if ((pindexLast->nHeight+1) != params.DifficultyAdjustmentInterval())
-        blockstogoback = params.DifficultyAdjustmentInterval();
+    int blockstogoback = nDifficultyAdjustmentInterval-1;
+    if ((pindexLast->nHeight+1) != nDifficultyAdjustmentInterval)
+        blockstogoback = nDifficultyAdjustmentInterval;
 
     // Go back by what we want to be 14 days worth of blocks
     const CBlockIndex* pindexFirst = pindexLast;
@@ -62,25 +81,38 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
     // Limit adjustment step
     int64_t nActualTimespan = pindexLast->GetBlockTime() - nFirstBlockTime;
     
-    // Check if we're at or past the activation height
+    // Determine which rules to use based on block height
+    bool fOneBlockRetarget = (pindexLast->nHeight + 1) >= params.nOneBlockRetargetActivationHeight;
     bool fNewRules = pindexLast->nHeight >= params.nDifficultyChangeActivationHeight;
     
-    if (fNewRules) {
-        // New rules: limit upward difficulty change to 1.5x (instead of 4x)
-        if (nActualTimespan < (params.nPowTargetTimespan * 2) / 3)
-            nActualTimespan = (params.nPowTargetTimespan * 2) / 3;
-            
-        // New rules: allow downward difficulty change up to 6x (instead of 4x)
-        if (nActualTimespan > params.nPowTargetTimespan * 6)
-            nActualTimespan = params.nPowTargetTimespan * 6;
+    // Get the correct target timespan for this height
+    int64_t nTargetTimespan = params.GetPowTargetTimespan(pindexLast->nHeight + 1);
+    
+    if (fOneBlockRetarget) {
+        // 1-block retarget: 50% max difficulty increase, 6x max difficulty decrease
+        if (nActualTimespan < (nTargetTimespan * 2) / 3)
+            nActualTimespan = (nTargetTimespan * 2) / 3;  // 50% difficulty increase (1.5x harder)
+        if (nActualTimespan > nTargetTimespan * 6)
+            nActualTimespan = nTargetTimespan * 6;  // 6x difficulty decrease (6x easier)
     } else {
-        // Old rules: limit upward difficulty change to 4x
-        if (nActualTimespan < params.nPowTargetTimespan/4)
-            nActualTimespan = params.nPowTargetTimespan/4;
-            
-        // Old rules: limit downward difficulty change to 4x
-        if (nActualTimespan > params.nPowTargetTimespan*4)
-            nActualTimespan = params.nPowTargetTimespan*4;
+        // Use the fNewRules logic for difficulty swing percentages (block 21000+)
+        if (fNewRules) {
+            // New rules (block 21000+): limit upward difficulty change to 1.5x (instead of 4x)
+            if (nActualTimespan < (nTargetTimespan * 2) / 3)
+                nActualTimespan = (nTargetTimespan * 2) / 3;
+                
+            // New rules: allow downward difficulty change up to 6x (instead of 4x)
+            if (nActualTimespan > nTargetTimespan * 6)
+                nActualTimespan = nTargetTimespan * 6;
+        } else {
+            // Old rules (blocks 0-20999): limit upward difficulty change to 4x
+            if (nActualTimespan < nTargetTimespan/4)
+                nActualTimespan = nTargetTimespan/4;
+                
+            // Old rules: limit downward difficulty change to 4x
+            if (nActualTimespan > nTargetTimespan*4)
+                nActualTimespan = nTargetTimespan*4;
+        }
     }
 
     // Retarget
@@ -94,7 +126,7 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
     if (fShift)
         bnNew >>= 1;
     bnNew *= nActualTimespan;
-    bnNew /= params.nPowTargetTimespan;
+    bnNew /= nTargetTimespan;
     if (fShift)
         bnNew <<= 1;
 
