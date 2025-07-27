@@ -15,9 +15,29 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     assert(pindexLast != nullptr);
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
 
-    // Check if we're using 1-block retarget (after block 45000)
+    // Check for emergency difficulty reset (only after 1-block retarget activation)
     bool fOneBlockRetarget = (pindexLast->nHeight + 1) >= params.nOneBlockRetargetActivationHeight;
-    
+    if (fOneBlockRetarget && params.fAllowEmergencyDifficultyReset && pblock != nullptr) {
+        int64_t nTimeSinceLastBlock = pblock->GetBlockTime() - pindexLast->GetBlockTime();
+        
+        // If block time exceeds emergency threshold, use emergency fallback difficulty
+        if (nTimeSinceLastBlock > params.nEmergencyDifficultyResetTime) {
+            // Calculate emergency fallback difficulty: reduce current difficulty by 90% (10x easier)
+            arith_uint256 bnEmergencyTarget;
+            bnEmergencyTarget.SetCompact(pindexLast->nBits);
+            bnEmergencyTarget *= 10; // Make it 10x easier
+            
+            // Don't go easier than proof of work limit
+            const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
+            if (bnEmergencyTarget > bnPowLimit) {
+                bnEmergencyTarget = bnPowLimit;
+            }
+            
+            return bnEmergencyTarget.GetCompact();
+        }
+    }
+
+    // Check if we're using 1-block retarget (after block 45000)
     if (fOneBlockRetarget) {
         // 1-block retarget: adjust difficulty every block
         if (pindexLast->pprev == nullptr) {
