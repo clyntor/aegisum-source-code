@@ -90,6 +90,10 @@ public:
         consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget
         consensus.nMinerConfirmationWindowOneBlock = 4; // (3*60)/(3*60) * 4 = 1 * 4 = 4
 
+        // Emergency difficulty reset parameters (active after 1-block retarget)
+        consensus.nEmergencyDifficultyResetTime = 30 * 60; // 30 minutes
+        consensus.fAllowEmergencyDifficultyReset = true;   // Enable emergency reset
+
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 2; // 75% of 3
@@ -194,6 +198,11 @@ public:
         consensus.nPowTargetSpacing = 3 * 60;
         consensus.nDifficultyChangeActivationHeight = 100; // Activate new difficulty rules at block 100
         consensus.nOneBlockRetargetActivationHeight = 200; // Activate 1-block retarget at block 200 on testnet
+
+        // Emergency difficulty reset parameters (shorter time for testing)
+        consensus.nEmergencyDifficultyResetTime = 10 * 60; // 10 minutes for testnet
+        consensus.fAllowEmergencyDifficultyReset = true;   // Enable emergency reset
+
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
@@ -289,6 +298,11 @@ public:
         consensus.nPowTargetSpacing = 3 * 60;
         consensus.nDifficultyChangeActivationHeight = 20000; // Activate new difficulty rules at block 20000
         consensus.nOneBlockRetargetActivationHeight = 100; // Activate 1-block retarget at block 100 on regtest
+
+        // Emergency difficulty reset parameters (very short for testing)
+        consensus.nEmergencyDifficultyResetTime = 5 * 60;  // 5 minutes for regtest
+        consensus.fAllowEmergencyDifficultyReset = true;   // Enable emergency reset
+
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
