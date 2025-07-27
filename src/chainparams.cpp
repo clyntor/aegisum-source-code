@@ -203,7 +203,7 @@ public:
         consensus.nEmergencyDifficultyResetTime = 10 * 60; // 10 minutes for testnet
         consensus.fAllowEmergencyDifficultyReset = true;   // Enable emergency reset
 
-        consensus.fPowAllowMinDifficultyBlocks = true;
+        consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
         consensus.nMinerConfirmationWindow = 12; // nPowTargetTimespan / nPowTargetSpacing
