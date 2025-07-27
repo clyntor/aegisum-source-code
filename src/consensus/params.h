@@ -86,11 +86,39 @@ struct Params {
     uint256 powLimit;
     bool fPowAllowMinDifficultyBlocks;
     bool fPowNoRetargeting;
+    // Original proof of work parameters
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
-    int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
     // Block height at which the new difficulty adjustment rules become active
     int nDifficultyChangeActivationHeight;
+    // Block height at which 1-block retarget becomes active
+    int nOneBlockRetargetActivationHeight;
+
+    // New parameters for 1-block retarget (active after nOneBlockRetargetActivationHeight)
+    int64_t nPowTargetTimespanOneBlock;
+    uint32_t nMinerConfirmationWindowOneBlock;
+
+    int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
+
+    /** Helper functions to get parameters based on block height */
+    int64_t GetPowTargetTimespan(int nHeight) const {
+        if (nHeight >= nOneBlockRetargetActivationHeight) {
+            return nPowTargetTimespanOneBlock;
+        }
+        return nPowTargetTimespan;
+    }
+
+    uint32_t GetMinerConfirmationWindow(int nHeight) const {
+        if (nHeight >= nOneBlockRetargetActivationHeight) {
+            return nMinerConfirmationWindowOneBlock;
+        }
+        return nMinerConfirmationWindow;
+    }
+
+    int64_t GetDifficultyAdjustmentInterval(int nHeight) const {
+        return GetPowTargetTimespan(nHeight) / nPowTargetSpacing;
+    }
+
     /** The best chain should have at least this much work */
     uint256 nMinimumChainWork;
     /** By default assume that the signatures in ancestors of this block are valid */
