@@ -84,7 +84,7 @@ public:
 
         // Activation heights
         consensus.nDifficultyChangeActivationHeight = 21000; // Activate new difficulty rules at block 21000
-        consensus.nOneBlockRetargetActivationHeight = 45000; // Activate 1-block retarget at block 46000
+        consensus.nOneBlockRetargetActivationHeight = 45000; // Activate 1-block retarget at block 45000
 
         // New parameters for 1-block retarget (blocks 45000+)
         consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget
