@@ -192,12 +192,12 @@ public:
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
-        consensus.nDifficultyChangeActivationHeight = 20000; // Activate new difficulty rules at block 20000
-        consensus.nOneBlockRetargetActivationHeight = 1000; // Activate 1-block retarget at block 1000 on testnet
+        consensus.nDifficultyChangeActivationHeight = 100; // Activate new difficulty rules at block 100
+        consensus.nOneBlockRetargetActivationHeight = 200; // Activate 1-block retarget at block 200 on testnet
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
-        consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
+        consensus.nMinerConfirmationWindow = 12; // nPowTargetTimespan / nPowTargetSpacing
 
         consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget
         consensus.nMinerConfirmationWindowOneBlock = 4; // 4 blocks confirmation window
@@ -223,7 +223,7 @@ public:
         pchMessageStart[1] = 0xcd;
         pchMessageStart[2] = 0x83;
         pchMessageStart[3] = 0xdc;
-        nDefaultPort = 32276;
+        nDefaultPort = 49941;
         nPruneAfterHeight = 1000;
         m_assumed_blockchain_size = 4;
         m_assumed_chain_state_size = 1;
