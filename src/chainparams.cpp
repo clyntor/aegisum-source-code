@@ -76,13 +76,23 @@ public:
         consensus.SegwitHeight = 0; 
         consensus.MinBIP9WarningHeight = 0; // segwit activation height + miner confirmation window
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan =  9 * 60;
-        consensus.nPowTargetSpacing = 3 * 60;
+
+        // Original parameters (blocks 0-45999)
+        consensus.nPowTargetTimespan = 9 * 60;  // 9 minutes
+        consensus.nPowTargetSpacing = 3 * 60;   // 3 minutes per block
+        consensus.nMinerConfirmationWindow = 12; // nPowTargetTimespan / nPowTargetSpacing * 4
+
+        // Activation heights
         consensus.nDifficultyChangeActivationHeight = 21000; // Activate new difficulty rules at block 21000
+        consensus.nOneBlockRetargetActivationHeight = 46000; // Activate 1-block retarget at block 46000
+
+        // New parameters for 1-block retarget (blocks 46000+)
+        consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget
+        consensus.nMinerConfirmationWindowOneBlock = 4; // (3*60)/(3*60) * 4 = 1 * 4 = 4
+
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 2; // 75% of 3
-        consensus.nMinerConfirmationWindow = 12; // nPowTargetTimespan / nPowTargetSpacing * 4
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
@@ -180,13 +190,17 @@ public:
         consensus.SegwitHeight = 6048; // 00000000002b980fcd729daaa248fd9316a5200e9b367f4ff2c42453e84201ca
         consensus.MinBIP9WarningHeight = 8064; // segwit activation height + miner confirmation window
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan =  9 * 60;
+        consensus.nPowTargetTimespan = 9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
         consensus.nDifficultyChangeActivationHeight = 20000; // Activate new difficulty rules at block 20000
+        consensus.nOneBlockRetargetActivationHeight = 1000; // Activate 1-block retarget at block 1000 on testnet
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
+
+        consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget
+        consensus.nMinerConfirmationWindowOneBlock = 4; // 4 blocks confirmation window
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
@@ -271,13 +285,17 @@ public:
         consensus.SegwitHeight = 0; // SEGWIT is always activated on regtest unless overridden
         consensus.MinBIP9WarningHeight = 0;
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan =  9 * 60;
+        consensus.nPowTargetTimespan = 9 * 60;
         consensus.nPowTargetSpacing = 3 * 60;
         consensus.nDifficultyChangeActivationHeight = 20000; // Activate new difficulty rules at block 20000
+        consensus.nOneBlockRetargetActivationHeight = 100; // Activate 1-block retarget at block 100 on regtest
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
         consensus.nMinerConfirmationWindow = 144; // Faster than normal for regtest (144 instead of 2016)
+
+        consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget  
+        consensus.nMinerConfirmationWindowOneBlock = 4; // 4 blocks confirmation window
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
