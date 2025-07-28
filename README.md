@@ -40,10 +40,12 @@ Aegisum is a fair launched advanced blockchain dedicated to building a decentral
 | **Coin Name**            | Aegisum                        |
 | **Coin Abbreviation**    | AEGS                           |
 | **Public Address Letter** | A                             |
-| **Testnet Address Letter** | 1                           |
+| **Testnet Address Letter** | T                           |
 | **Coin Unit**            | gisum                          |
-| **RPC Port**             | 39940                          |
-| **P2P Port**             | 39941                          |
+| **Mainnet RPC Port**             | 39940                          |
+| **Mainnet P2P Port**             | 39941                          |
+| **Testnet RPC Port**             | 49940                          |
+| **Testnet P2P Port**             | 49941                          |
 | **Initial Block Reward**         | 500 coins              |
 | **Block Halving**        | Every 100,000 blocks           |
 | **Max Supply**         | 100,000,000 coins          |
