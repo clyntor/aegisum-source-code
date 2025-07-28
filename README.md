@@ -76,10 +76,11 @@ Alternatively, refer to the Bitcoin Core documentation, which follows a similar 
 
 ## Network Ports 🌐
 
-| **Function** | **Mainnet** |
-|-------------|------------|
-| **P2P**    | 39941      | 
-| **RPC**    | 39940      | 
+| **Function** | **Mainnet** | **Testnet** |
+|-------------|------------|-------------|
+| **RPC**    | 39940      | 49940        |
+| **P2P**    | 39941      | 49941        |
+
 
 ## Ongoing Development 💻
 
