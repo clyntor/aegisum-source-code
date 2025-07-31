@@ -37,7 +37,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         }
     }
 
-    // Check if we're using 1-block retarget (after block 45000)
+    // Check if we're using 1-block retarget (after block 46200)
     if (fOneBlockRetarget) {
         // 1-block retarget: adjust difficulty every block
         if (pindexLast->pprev == nullptr) {
