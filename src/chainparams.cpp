@@ -83,10 +83,10 @@ public:
         consensus.nMinerConfirmationWindow = 12; // nPowTargetTimespan / nPowTargetSpacing * 4
 
         // Activation heights
-        consensus.nDifficultyChangeActivationHeight = 21000; // Activate new difficulty rules at block 21000
-        consensus.nOneBlockRetargetActivationHeight = 45000; // Activate 1-block retarget at block 45000
+        consensus.nDifficultyChangeActivationHeight = 21000; // Activate new difficulty rules at block 21000 (this helped, but wasn't perfect)
+        consensus.nOneBlockRetargetActivationHeight = 46200; // Activate 1-block retarget at block 46200
 
-        // New parameters for 1-block retarget (blocks 45000+)
+        // New parameters for 1-block retarget (blocks 46200+)
         consensus.nPowTargetTimespanOneBlock = 3 * 60;  // 3 minutes for 1-block retarget
         consensus.nMinerConfirmationWindowOneBlock = 4; // (3*60)/(3*60) * 4 = 1 * 4 = 4
 
